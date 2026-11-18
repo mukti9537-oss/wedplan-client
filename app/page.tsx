@@ -1,4 +1,5 @@
 import Banner from "@/components/Banner"
+import Footer from "@/components/Footer"
 import { Navbar } from "@/components/navbar"
 
 
@@ -9,6 +10,7 @@ export default function Page() {
       <main>
          <Banner />
       </main>
+      <Footer />
     </div>
   )
 }

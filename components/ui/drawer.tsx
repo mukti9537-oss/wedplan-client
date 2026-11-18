@@ -45,8 +45,8 @@ export const DrawerContent = React.forwardRef<
           "border border-[#EADDDD]",
           "bg-[#FAF0F0] p-6 shadow-lg",
           "outline-none",
-          "data-[starting-style]:translate-y-full",
-          "data-[ending-style]:translate-y-full",
+          "data-starting-style:translate-y-full",
+          "data-ending-style:translate-y-full",
           "transition-transform duration-300",
           className
         )}
