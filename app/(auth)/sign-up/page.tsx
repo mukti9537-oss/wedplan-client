@@ -103,6 +103,7 @@ const SignUpPage = () => {
 
     // Email & Password Registration
     const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
+ 
         e.preventDefault();
 
         if (!validatePassword()) return;
@@ -358,8 +359,8 @@ const SignUpPage = () => {
                             onChange={(e) => setRole(e.target.value)}
                             className="h-12 w-full rounded-lg border border-[#e5d9d7] bg-white px-4 text-sm text-[#4b1e2e] outline-none transition focus:border-[#8b1010] focus:ring-2 focus:ring-[#8b1010]/10"
                         >
-                            <option value="couple">Couple</option>
-                            <option value="planner">Wedding Planner</option>
+                            <option value="vendor">Vendor</option>
+                            <option value="customer">Customer</option>
                         </select>
                     </div>
 
