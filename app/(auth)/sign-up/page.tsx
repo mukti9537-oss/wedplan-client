@@ -27,7 +27,7 @@ const SignUpPage = () => {
     const [fullName, setFullName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [role, setRole] = useState("couple");
+    const [role, setRole] = useState("");
 
     const [profileImage, setProfileImage] = useState<File | null>(null);
     const [preview, setPreview] = useState("");
@@ -103,7 +103,7 @@ const SignUpPage = () => {
 
     // Email & Password Registration
     const handleSignUp = async (e: React.FormEvent<HTMLFormElement>) => {
- 
+
         e.preventDefault();
 
         if (!validatePassword()) return;
@@ -122,6 +122,7 @@ const SignUpPage = () => {
                 email,
                 password,
                 image: imageUrl,
+                role: role as "vendor" | "customer",
             });
 
             if (error) {
@@ -143,6 +144,10 @@ const SignUpPage = () => {
             );
         } finally {
             setLoading(false);
+        }
+        if (!role) {
+            toast.error("Please select an account role");
+            return;
         }
     };
 
@@ -357,6 +362,7 @@ const SignUpPage = () => {
                         <select
                             value={role}
                             onChange={(e) => setRole(e.target.value)}
+                            required
                             className="h-12 w-full rounded-lg border border-[#e5d9d7] bg-white px-4 text-sm text-[#4b1e2e] outline-none transition focus:border-[#8b1010] focus:ring-2 focus:ring-[#8b1010]/10"
                         >
                             <option value="vendor">Vendor</option>
