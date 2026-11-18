@@ -48,7 +48,7 @@ export function Navbar() {
                 WedPlan
               </span>
               <span className="text-[9px] font-medium tracking-[2px] text-[#766766] uppercase">
-                Meaningful Connections
+                Wedding Planning Platform
               </span>
             </div>
 
