@@ -14,6 +14,7 @@ import {
   DrawerDescription,
   DrawerPortal,
 } from "@/components/ui/drawer"
+import { useSession , signOut} from "@/lib/auth-client"
 
 const navigation = [
   { href: "/", label: "Home" },
@@ -22,6 +23,11 @@ const navigation = [
 
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
+  const {data: session} = useSession()
+
+  const handleSignOut = async () => {
+    await signOut()
+  }
 
   return (
     <>
@@ -78,7 +84,27 @@ export function Navbar() {
             ))}
 
             {/* Sign In */}
-            <Link
+            {session?.user ? 
+            <>
+            <span className="text-[#7C0A09]">welcome, {session.user.name}</span>
+               <button
+              onClick={handleSignOut}
+              className={cn(
+                "rounded-full bg-[#7C0A09]",
+                "px-6 py-2.5",
+                "text-[12px] font-semibold text-white",
+                "shadow-sm shadow-[#7C0A09]/20",
+                "transition-all duration-300",
+                "hover:bg-[#5F0808]",
+                "hover:shadow-md hover:shadow-[#7C0A09]/25",
+                "hover:-translate-y-0.5"
+              )}
+            >
+              Sign Out 
+            </button>
+            </>
+          :<>
+             <Link
               href="/sign-in"
               className="text-[13px] font-semibold text-[#3D2928] transition-colors duration-200 hover:text-[#7C0A09]"
             >
@@ -101,7 +127,8 @@ export function Navbar() {
             >
               Sign Up
             </Link>
-
+         </>
+          }
           </div>
 
           {/* Mobile Menu Button */}
