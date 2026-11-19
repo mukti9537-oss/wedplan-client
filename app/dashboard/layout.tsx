@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 import { DashboardSidebar } from "../components/DashboardSidebar";
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
@@ -8,14 +8,9 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         <SidebarProvider>
             <DashboardSidebar />
 
-            <main className="flex-1 min-w-0 bg-[#fffaf7] min-h-screen">
-
-                <div className="flex items-center h-12 px-5 border-b border-[#f0dfd9] bg-white">
-                    <SidebarTrigger className="text-[#800000]" />
-                </div>
-
+            <main className="flex-1 min-w-0 bg-[#fffaf7] min-h-screen pt-[74] pb-10">
+                    
                 {children}
-
             </main>
         </SidebarProvider>
     );
