@@ -16,14 +16,14 @@ import {
 } from "@/components/ui/drawer"
 import { useSession , signOut} from "@/lib/auth-client"
 
-const navigation = [
-  { href: "/", label: "Home" },
-  { href: "/browse-services", label: "Browse Services" },
-] as const
-
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
   const {data: session} = useSession()
+  const navigation = [
+    { href: "/", label: "Home" },
+    { href: "/browse-services", label: "Browse Services" },
+    { href: `/dashboard/${session?.user.role || 'customer'}`, label: "Dashboard" },
+  ] as const
 
   const handleSignOut = async () => {
     await signOut()

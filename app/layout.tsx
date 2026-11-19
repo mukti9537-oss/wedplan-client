@@ -4,6 +4,8 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@/lib/utils";
 import { ToastContainer } from "react-toastify";
+import { Navbar } from "@/components/navbar";
+import Footer from "@/components/Footer";
 
 const geist = Geist({ subsets: ['latin'], variable: '--font-sans' })
 
@@ -24,6 +26,7 @@ export default function RootLayout({
       className={cn("antialiased", fontMono.variable, "font-sans", geist.variable)}
     >
       <body>
+        <Navbar />
         <ThemeProvider>
           {children}
           <ToastContainer
@@ -32,6 +35,7 @@ export default function RootLayout({
             theme="light"
           />
         </ThemeProvider>
+        <Footer />
       </body>
     </html>
   )
