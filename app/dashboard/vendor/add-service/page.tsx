@@ -29,6 +29,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import Image from "next/image";
+import { createService } from "@/lib/actions/service";
 
 const AddServicepage = () => {
     const [image, setImage] = useState<File | null>(null);
@@ -55,21 +56,18 @@ const AddServicepage = () => {
         setPreview(null);
     };
 
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         const formData = new FormData(e.currentTarget);
 
-        const serviceData = {
-            serviceName: formData.get("serviceName"),
-            category,
-            description: formData.get("description"),
-            price: formData.get("price"),
-            location: formData.get("location"),
-            image,
-        };
+        formData.append("category", category);
+        if (image) {
+            formData.append("serviceImage", image);
+        }
 
-        console.log(serviceData);
+        const result = await createService(formData);
+        console.log("createservice result: ",  result);
     };
 
     return (
@@ -251,7 +249,6 @@ const AddServicepage = () => {
                                         <Input
                                             name="price"
                                             type="number"
-                                            // min="1"
                                             placeholder="Enter your price"
                                             required
                                             className="h-12 border-[#EBDAD7] text-[#401827] bg-[#FFFCFB] pl-10 placeholder:text-[#B8A5A5] focus-visible:border-[#8B0D0D] focus-visible:ring-[#8B0D0D]/20"
