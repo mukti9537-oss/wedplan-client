@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import Image from "next/image";
 import { createService } from "@/lib/actions/service";
+import { toast } from "react-toastify";
 
 const AddServicepage = () => {
     const [image, setImage] = useState<File | null>(null);
@@ -66,8 +67,22 @@ const AddServicepage = () => {
             formData.append("serviceImage", image);
         }
 
-        const result = await createService(formData);
-        console.log("createservice result: ",  result);
+        try {
+            const result = await createService(formData);
+            console.log("createservice result: ", result);
+            console.log("Inserted:", result?.inserted);
+            console.log("Success:", result?.success);
+
+            if (result?.success === true) {
+                toast.success("Service added successfully!");
+            } else {
+                toast.error("Failed to add service!");
+            }
+
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to add service!");
+        }
     };
 
     return (
