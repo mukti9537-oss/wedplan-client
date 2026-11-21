@@ -1,38 +1,32 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
+
 import {
     BriefcaseBusiness,
     CheckCircle2,
-    CalendarDays,
     CalendarCheck,
     Crown,
-    Plus,
     ArrowRight,
-    X,
 } from "lucide-react";
 import Image from "next/image";
+import { getService } from "@/lib/actions/service";
 
-const stats = [
-    {
-        title: "Total Services",
-        value: "08",
-        icon: BriefcaseBusiness,
-    },
-    {
-        title: "Active Services",
-        value: "05",
-        icon: CheckCircle2,
-    },
-    {
-        title: "Pending Booking Requests",
-        value: "12",
-        icon: CalendarDays,
-    },
-    {
-        title: "Accepted Bookings",
-        value: "24",
-        icon: CalendarCheck,
-    },
-];
+type Service = {
+    _id: string;
+    serviceName: string;
+    category: string;
+    price: number;
+    location: string;
+    serviceImage: string;
+    status?: "Approved" | "Pending" | "Rejected";
+};
+
+const statusStyle: Record<NonNullable<Service["status"]>, string> = {
+    Approved: "bg-[#dcf4df] text-[#18743b]",
+    Pending: "bg-[#fff0d0] text-[#a65b08]",
+    Rejected: "bg-[#fde2e2] text-[#b42318]",
+};
 
 const bookings = [
     {
@@ -55,28 +49,47 @@ const bookings = [
     },
 ];
 
-const services = [
-    {
-        name: "Wedding Photography",
-        price: "৳25,000",
-        status: "Active",
-        image: "https://images.unsplash.com/photo-1519741497674-611481863552?w=100",
-    },
-    {
-        name: "Floral Decoration",
-        price: "৳18,000",
-        status: "Pending",
-        image: "https://images.unsplash.com/photo-1523438885200-e635ba2c371e?w=100",
-    },
-    {
-        name: "Venue Styling",
-        price: "৳32,000",
-        status: "Active",
-        image: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=100",
-    },
-];
-
 const VendorDashboardpage = () => {
+    const [services, setServices] = useState<Service[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchServices = async () => {
+            try {
+                const data = await getService();
+                setServices(data);
+            } catch (error) {
+                console.error("Failed to fetch services:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchServices();
+    }, []);
+
+    const stats = [
+        {
+            title: "Total Services",
+            value: services.length.toString().padStart(2, "0"),
+            icon: BriefcaseBusiness,
+        },
+        {
+            title: "Pending Services",
+            value: services.filter(
+                (service) => service.status === "Pending"
+            ).length.toString().padStart(2, "0"),
+            icon: CheckCircle2,
+        },
+        {
+            title: "Approved Services",
+            value: services.filter(
+                (service) => service.status === "Approved"
+            ).length.toString().padStart(2, "0"),
+            icon: CalendarCheck,
+        },
+    ];
+
     return (
         <div className="min-h-screen bg-[#fffaf7] p-5 md:p-8">
 
@@ -96,12 +109,6 @@ const VendorDashboardpage = () => {
                         Manage your services and booking requests in one place.
                     </p>
                 </div>
-
-                <button className="flex items-center justify-center gap-2 bg-[#800000] hover:bg-[#600000] text-white px-6 py-3 rounded-xl transition-all shadow-md">
-                    <Plus size={20} />
-                    Add New Service
-                </button>
-
             </div>
 
 
@@ -227,8 +234,7 @@ const VendorDashboardpage = () => {
 
                 {/* My Services */}
                 <div className="2xl:col-span-2 bg-white border border-[#f0dfd9] rounded-2xl p-5 md:p-6 shadow-sm">
-
-                    <div className="flex items-center justify-between mb-5 border-b border-[#f0dfd9] pb-4">
+                        <div className="flex items-center justify-between mb-5 border-b border-[#f0dfd9] pb-4">
                         <h2 className="text-xl md:text-2xl font-serif font-bold text-[#4b1727]">
                             My Services
                         </h2>
@@ -238,45 +244,54 @@ const VendorDashboardpage = () => {
                         </button>
                     </div>
 
-                    <div className="space-y-4">
-
-                        {services.map((service, index) => (
+                    {loading ? (
+                        <p className="text-center text-gray-500 py-5">
+                            Loading services...
+                        </p>
+                    ) : services.length === 0 ? (
+                        <p className="text-center text-gray-500 py-5">
+                            No services added yet.
+                        </p>
+                    ) : (
+                        services.map((service) => (
                             <div
-                                key={index}
+                                key={service._id}
                                 className="flex items-center gap-3 border-b border-[#f4e9e5] pb-4 last:border-0"
                             >
-
+                                {/* Service Image */}
                                 <Image
-                                    width={12}
-                                    height={12}
-                                    src={service.image}
-                                    alt={service.name}
-                                    className="w-16 h-14 rounded-lg object-cover"
+                                    src={service.serviceImage}
+                                    alt={service.serviceName}
+                                    width={64}
+                                    height={56}
+                                    unoptimized
+                                    className="w-16 h-14 rounded-xl object-cover shrink-0"
                                 />
 
+                                {/* Service Details */}
                                 <div className="flex-1 min-w-0">
-                                    <h3 className="text-sm font-semibold text-[#3f2930]">
-                                        {service.name}
+                                    <h3 className="text-sm font-semibold text-[#3f2930] truncate">
+                                        {service.serviceName}
                                     </h3>
 
-                                    <p className="text-xs text-[#947e82] mt-1">
-                                        {service.price}
+                                    <p className="text-sm text-[#947e82] mt-1">
+                                        Tk.{service.price.toLocaleString("en-BD")}
                                     </p>
                                 </div>
 
-                                <span
-                                    className={`text-xs font-semibold px-3 py-1.5 rounded-full ${service.status === "Active"
-                                        ? "bg-[#dcf4df] text-[#18743b]"
-                                        : "bg-[#fff0d0] text-[#a65b08]"
+                                {/* Category Badge */}
+                                   <span
+                                    className={`text-xs font-semibold px-3 py-1.5 rounded-full
+                                         ${statusStyle[service.status || "Pending"]
                                         }`}
                                 >
-                                    {service.status}
+                                    {service.status || "Pending"}
                                 </span>
 
                             </div>
-                        ))}
+                        ))
+                    )}
 
-                    </div>
                 </div>
 
             </div>

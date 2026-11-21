@@ -21,3 +21,13 @@ export const createService = async (data: FormData) => {
 
     return result;
 };
+// Get Services
+export const getService = async () => {
+    const res = await fetch(`${BASE_URL}/add-service`);
+
+    if (!res.ok) {
+        throw new Error("Failed to fetch services");
+    }
+
+    return res.json();
+};
