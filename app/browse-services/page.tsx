@@ -84,7 +84,12 @@ const BrowseServicesPage = async ({
                             <option value="Photography">Photography</option>
                             <option value="Videography">Videography</option>
                             <option value="Catering">Catering</option>
-                            <option value="Decoration">Decoration</option>
+                            <option value="Wedding Planning">Wedding Planning</option>
+                            <option value="Music & Entertainment">Music & Entertainment</option>
+                            <option value="Wedding Decoration">Wedding Decoration</option>
+                            <option value="Makeup Artist">Makeup Artist</option>
+                            <option value="Wedding Venue">Wedding Venue</option>
+                            <option value="Other">Other</option>
                         </select>
 
 
