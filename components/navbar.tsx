@@ -37,6 +37,7 @@ export function Navbar() {
 
   const user = session?.user;
   const role = user?.role || "customer";
+  
 
   const navigation = [
     { href: "/", label: "Home" },

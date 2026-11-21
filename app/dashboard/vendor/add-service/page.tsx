@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { authClient } from "@/lib/auth-client";
 
 import {
     Card,
@@ -36,6 +37,10 @@ const AddServicepage = () => {
     const [image, setImage] = useState<File | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [category, setCategory] = useState("");
+    const { data: session } = authClient.useSession();
+
+    const vendorName = session?.user?.name || "";
+    const vendorEmail = session?.user?.email || "";
 
     const handleImageChange = (
         e: React.ChangeEvent<HTMLInputElement>
@@ -59,10 +64,19 @@ const AddServicepage = () => {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        if (!session?.user) {
+            toast.error("Please login first!");
+            return;
+        }
 
         const formData = new FormData(e.currentTarget);
 
         formData.append("category", category);
+
+        // Logged-in vendor information
+        formData.append("vendorName", vendorName);
+        formData.append("vendorEmail", vendorEmail);
+
         if (image) {
             formData.append("serviceImage", image);
         }
