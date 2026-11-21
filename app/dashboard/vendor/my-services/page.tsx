@@ -14,7 +14,7 @@ import {
 import Image from "next/image";
 import { toast } from "react-toastify";
 
-import { getService } from "@/lib/api/service";
+import { getService, deleteService as deleteServiceAPI } from "@/lib/api/service";
 
 interface Service {
     _id: string;
@@ -89,6 +89,7 @@ const MyServicesPage = () => {
     };
 
     // Delete Service
+
     const deleteService = (id: string) => {
 
         toast.info(
@@ -101,17 +102,27 @@ const MyServicesPage = () => {
                 <div className="flex gap-2">
 
                     <button
-                        onClick={() => {
+                        onClick={async () => {
+                            try {
+                                const result = await deleteServiceAPI(id);
 
-                            setServices((prev) =>
-                                prev.filter(
-                                    (service) => service._id !== id
-                                )
-                            );
+                                if (result.deletedCount === 1) {
+                                    setServices((prev) =>
+                                        prev.filter((service) => service._id !== id)
+                                    );
 
-                            toast.dismiss();
-                            toast.success("Service deleted successfully!");
+                                    toast.dismiss();
+                                    toast.success("Service deleted successfully!");
+                                } else {
+                                    throw new Error("Service not found");
+                                }
 
+                            } catch (error) {
+                                console.error("Delete error:", error);
+
+                                toast.dismiss();
+                                toast.error("Failed to delete service!");
+                            }
                         }}
                         className="rounded bg-[#800000] px-3 py-1.5 text-white"
                     >
@@ -136,6 +147,7 @@ const MyServicesPage = () => {
         );
 
     };
+
 
     const statusStyle = {
         Approved: "bg-green-100 text-green-700",
@@ -204,9 +216,8 @@ const MyServicesPage = () => {
                                 />
 
                                 <span
-                                    className={`absolute right-4 top-4 rounded-full px-4 py-1.5 text-xs font-semibold ${
-                                        statusStyle[service.status || "Pending"]
-                                    }`}
+                                    className={`absolute right-4 top-4 rounded-full px-4 py-1.5 text-xs font-semibold ${statusStyle[service.status || "Pending"]
+                                        }`}
                                 >
                                     {service.status || "Pending"}
                                 </span>
@@ -259,19 +270,17 @@ const MyServicesPage = () => {
 
                                     <button
                                         onClick={() => toggleAvailability(service._id)}
-                                        className={`relative h-6 w-11 rounded-full transition ${
-                                            service.isAvailable
-                                                ? "bg-green-500"
-                                                : "bg-gray-300"
-                                        }`}
+                                        className={`relative h-6 w-11 rounded-full transition ${service.isAvailable
+                                            ? "bg-green-500"
+                                            : "bg-gray-300"
+                                            }`}
                                     >
 
                                         <span
-                                            className={`absolute top-1 h-4 w-4 rounded-full bg-white transition-all ${
-                                                service.isAvailable
-                                                    ? "left-6"
-                                                    : "left-1"
-                                            }`}
+                                            className={`absolute top-1 h-4 w-4 rounded-full bg-white transition-all ${service.isAvailable
+                                                ? "left-6"
+                                                : "left-1"
+                                                }`}
                                         />
 
                                     </button>
