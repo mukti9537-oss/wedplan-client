@@ -135,6 +135,7 @@ export function Navbar() {
                       height={10}
                       src={user.image}
                       alt={user.name}
+                      unoptimized
                       className="h-9 w-9 rounded-full object-cover border-2 border-[#EADDDD]"
                     />
                   ) : (

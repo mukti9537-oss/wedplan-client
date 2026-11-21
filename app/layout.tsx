@@ -1,23 +1,25 @@
-import { Geist, Geist_Mono } from "next/font/google"
-
-import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
 import { ToastContainer } from "react-toastify";
 import { Navbar } from "@/components/navbar";
 import Footer from "@/components/Footer";
 
-const geist = Geist({ subsets: ['latin'], variable: '--font-sans' })
+const geist = Geist({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
-})
+});
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
     <html
@@ -25,21 +27,23 @@ export default function RootLayout({
       suppressHydrationWarning
       className={cn("antialiased", fontMono.variable, "font-sans", geist.variable)}
     >
-      <body className="flex min-h-screen flex-col">
-        <Navbar />
-
+      <body className="flex min-h-screen flex-col bg-cream text-ink">
         <ThemeProvider>
-          {children}
+          <Navbar />
+
+          <main className="w-full flex-1 pt-10">
+            {children}
+          </main>
+
+          <Footer />
+
+          <ToastContainer
+            position="top-right"
+            autoClose={3000}
+            theme="light"
+          />
         </ThemeProvider>
-
-        <ToastContainer
-          position="top-right"
-          autoClose={3000}
-          theme="light"
-        />
-
-        <Footer />
       </body>
     </html>
-  )
+  );
 }
