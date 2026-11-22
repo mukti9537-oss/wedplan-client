@@ -14,7 +14,7 @@ import {
 import Image from "next/image";
 import { toast } from "react-toastify";
 
-import { getService, deleteService as deleteServiceAPI } from "@/lib/api/service";
+import { getService, deleteService as deleteServiceAPI, updateService } from "@/lib/api/service";
 
 interface Service {
     _id: string;
@@ -34,6 +34,7 @@ const MyServicesPage = () => {
 
     const [services, setServices] = useState<Service[]>([]);
     const [loading, setLoading] = useState(true);
+    const [toggling, setToggling] = useState<Set<string>>(new Set());
 
     const [viewService, setViewService] = useState<Service | null>(null);
 
@@ -73,19 +74,51 @@ const MyServicesPage = () => {
     }, []);
 
     // Toggle Availability
-    const toggleAvailability = (id: string) => {
+    const toggleAvailability = async (id: string) => {
 
+        const service = services.find((s) => s._id === id);
+        if (!service) return;
+
+        const newAvailability = !service.isAvailable;
+
+        // Optimistic update
+        setToggling((prev) => new Set([...prev, id]));
         setServices((prev) =>
-            prev.map((service) =>
-                service._id === id
-                    ? {
-                        ...service,
-                        isAvailable: !service.isAvailable
-                    }
-                    : service
+            prev.map((s) =>
+                s._id === id
+                    ? { ...s, isAvailable: newAvailability }
+                    : s
             )
         );
 
+        try {
+            await updateService(id, { isAvailable: newAvailability });
+
+            toast.success(
+                newAvailability
+                    ? "Service is now available for booking"
+                    : "Service is now unavailable for booking"
+            );
+        } catch (error) {
+            console.error("Toggle availability error:", error);
+
+            // Revert optimistic update on failure
+            setServices((prev) =>
+                prev.map((s) =>
+                    s._id === id
+                        ? { ...s, isAvailable: service.isAvailable }
+                        : s
+                )
+            );
+
+            toast.error("Failed to update availability");
+        } finally {
+            setToggling((prev) => {
+                const next = new Set(prev);
+                next.delete(id);
+                return next;
+            });
+        }
     };
 
     // Delete Service
@@ -270,18 +303,25 @@ const MyServicesPage = () => {
 
                                     <button
                                         onClick={() => toggleAvailability(service._id)}
+                                        disabled={toggling.has(service._id)}
                                         className={`relative h-6 w-11 rounded-full transition ${service.isAvailable
                                             ? "bg-green-500"
                                             : "bg-gray-300"
-                                            }`}
+                                            } ${toggling.has(service._id) ? "opacity-60 cursor-not-allowed" : ""}`}
                                     >
 
-                                        <span
-                                            className={`absolute top-1 h-4 w-4 rounded-full bg-white transition-all ${service.isAvailable
-                                                ? "left-6"
-                                                : "left-1"
-                                                }`}
-                                        />
+                                        {toggling.has(service._id) ? (
+                                            <span className="absolute top-1 h-4 w-4 rounded-full bg-white flex items-center justify-center">
+                                                <Power size={14} className="animate-spin" />
+                                            </span>
+                                        ) : (
+                                            <span
+                                                className={`absolute top-1 h-4 w-4 rounded-full bg-white transition-all ${service.isAvailable
+                                                    ? "left-6"
+                                                    : "left-1"
+                                                    }`}
+                                            />
+                                        )}
 
                                     </button>
 

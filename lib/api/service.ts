@@ -11,3 +11,19 @@ export const deleteService = async (serviceId: string) => {
 
     return res.json();
 };
+
+export const updateService = async (serviceId: string, data: { isAvailable: boolean }) => {
+    const res = await fetch(`${BASE_URL}/add-service/${serviceId}`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+        throw new Error("Failed to update service");
+    }
+
+    return res.json();
+};

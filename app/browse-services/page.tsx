@@ -198,6 +198,12 @@ const BrowseServicesPage = async ({
                                         {item.category}
                                     </span>
 
+                                    {item.isAvailable === false ? (
+                                        <span className="absolute right-4 top-4 rounded-full bg-red-100 px-4 py-1.5 text-xs font-bold text-red-700 shadow">
+                                            Unavailable
+                                        </span>
+                                    ) : null}
+
                                 </div>
 
 

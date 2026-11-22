@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
     CalendarDays,
     Clock,
@@ -11,7 +11,6 @@ import {
     MapPin,
     UserRound,
     Mail,
-    ArrowLeft,
     Loader2,
     AlertCircle,
     CalendarCheck,
@@ -57,7 +56,7 @@ const CustomerBookingpage = () => {
     const customerEmail = session?.user?.email;
 
     // Fetch Customer Bookings
-    const fetchBookings = async () => {
+    const fetchBookings = useCallback(async () => {
         if (!customerEmail) return;
 
         try {
@@ -90,7 +89,7 @@ const CustomerBookingpage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [customerEmail]);
 
     useEffect(() => {
         if (sessionLoading) return;
@@ -104,7 +103,7 @@ const CustomerBookingpage = () => {
         }, 0);
 
         return () => window.clearTimeout(timeoutId);
-    }, [customerEmail, sessionLoading]);
+    }, [customerEmail, fetchBookings, sessionLoading]);
 
 
     // Cancel Booking

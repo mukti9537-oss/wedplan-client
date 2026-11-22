@@ -1,13 +1,11 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
     CalendarDays,
     Clock,
     CheckCircle2,
     XCircle,
-    Eye,
-    X,
     MapPin,
     UserRound,
     Settings,
@@ -48,7 +46,7 @@ const CustomerDashboardpage = () => {
     const [error, setError] = useState("");
 
     // Fetch Customer Bookings from backend
-    const fetchBookings = async () => {
+    const fetchBookings = useCallback(async () => {
         if (!customerEmail) return;
 
         try {
@@ -79,7 +77,7 @@ const CustomerDashboardpage = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [customerEmail]);
 
     useEffect(() => {
         if (sessionLoading) return;
@@ -93,7 +91,7 @@ const CustomerDashboardpage = () => {
         }, 0);
 
         return () => window.clearTimeout(timeoutId);
-    }, [customerEmail, sessionLoading]);
+    }, [customerEmail, fetchBookings, sessionLoading]);
 
     // Calculate stats from real data
     const totalBookings = bookings.length;
