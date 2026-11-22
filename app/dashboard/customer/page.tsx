@@ -406,9 +406,12 @@ const CustomerDashboardpage = () => {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 border-b border-[#f0dfd9] pb-4">
 
                     <div>
-                        <h2 className="text-xl md:text-2xl font-serif font-bold text-[#4b1727]">
+                        <Link
+                            href="/dashboard/customer/profile"
+                            className="text-xl md:text-2xl font-serif font-bold text-[#4b1727] hover:text-[#843047] transition-colors"
+                        >
                             Profile Settings
-                        </h2>
+                        </Link>
 
                         <p className="text-sm text-[#947e82] mt-1">
                             Manage your personal information.

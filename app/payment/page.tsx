@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
     CheckCircle,
     XCircle,
@@ -12,16 +12,11 @@ import {
 } from "lucide-react";
 
 const PaymentPage = () => {
-    const [status, setStatus] = useState<"success" | "cancel" | null>(null);
-
-    useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        const paymentStatus = params.get("status");
-
-        if (paymentStatus === "success" || paymentStatus === "cancel") {
-            setStatus(paymentStatus);
-        }
-    }, []);
+    const searchParams = useSearchParams();
+    const paymentStatus = searchParams.get("status");
+    const status = paymentStatus === "success" || paymentStatus === "cancel"
+        ? paymentStatus
+        : null;
 
     if (!status) {
         return (
