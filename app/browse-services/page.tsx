@@ -20,6 +20,13 @@ const BrowseServicesPage = async ({
 
     const service = await getService(query);
 
+    // Only show approved and active services to public
+    const approvedServices = Array.isArray(service)
+        ? service.filter(
+            (s: any) => s.status === "Approved" && (s.isAvailable ?? true)
+        )
+        : [];
+
     return (
         <section className="min-h-screen bg-[#FCF4F2] py-14">
 
@@ -84,11 +91,11 @@ const BrowseServicesPage = async ({
                             <option value="Photography">Photography</option>
                             <option value="Videography">Videography</option>
                             <option value="Catering">Catering</option>
+                            <option value="Decoration">Decoration</option>
+                            <option value="Venue">Venue</option>
+                            <option value="Makeup">Makeup</option>
+                            <option value="Music">Music</option>
                             <option value="Wedding Planning">Wedding Planning</option>
-                            <option value="Music & Entertainment">Music & Entertainment</option>
-                            <option value="Wedding Decoration">Wedding Decoration</option>
-                            <option value="Makeup Artist">Makeup Artist</option>
-                            <option value="Wedding Venue">Wedding Venue</option>
                             <option value="Other">Other</option>
                         </select>
 
@@ -139,14 +146,14 @@ const BrowseServicesPage = async ({
                     </h2>
 
                     <span className="rounded-full bg-[#F2DDDF] px-4 py-2 text-sm font-semibold text-[#850D0D]">
-                        {service.length} Services
+                        {approvedServices.length} Services
                     </span>
 
                 </div>
 
 
                 {/* Service Listing */}
-                {service.length === 0 ? (
+                {approvedServices.length === 0 ? (
 
                     /* Empty State */
                     <div className="rounded-2xl border border-dashed border-[#DDBFC3] bg-white px-5 py-20 text-center">
@@ -175,7 +182,7 @@ const BrowseServicesPage = async ({
 
                     <div className="grid grid-cols-1 gap-7 sm:grid-cols-2 lg:grid-cols-3">
 
-                        {service.map((item: Awaited<ReturnType<typeof getService>>[number]) => (
+                        {approvedServices.map((item: any) => (
 
                             <div
                                 key={item._id}
@@ -197,12 +204,6 @@ const BrowseServicesPage = async ({
                                     <span className="absolute left-4 top-4 rounded-full bg-white px-4 py-1.5 text-xs font-bold text-[#850D0D] shadow">
                                         {item.category}
                                     </span>
-
-                                    {item.isAvailable === false ? (
-                                        <span className="absolute right-4 top-4 rounded-full bg-red-100 px-4 py-1.5 text-xs font-bold text-red-700 shadow">
-                                            Unavailable
-                                        </span>
-                                    ) : null}
 
                                 </div>
 
@@ -226,18 +227,10 @@ const BrowseServicesPage = async ({
                                     <div className="mb-4 flex items-center gap-2 text-sm text-gray-500">
                                         <span>♙</span>
                                         <span>
-                                            {(item as {
-                                                vendorName?: string;
-                                                vendor?: { name?: string };
-                                                vendorEmail?: string;
-                                            }).vendorName ||
-                                                (item as {
-                                                    vendor?: { name?: string };
-                                                }).vendor?.name ||
-                                                (item as {
-                                                    vendorEmail?: string;
-                                                }).vendorEmail ||
-                                                'Vendor information unavailable'}
+                                            {item.vendorName ||
+                                                (item.vendor?.name ||
+                                                    item.vendorEmail ||
+                                                    'Vendor information unavailable')}
                                         </span>
                                     </div>
 

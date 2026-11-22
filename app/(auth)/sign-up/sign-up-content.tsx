@@ -133,7 +133,7 @@ export default function SignUpContent() {
                 email,
                 password,
                 image: imageUrl,
-                role: role as "vendor" | "customer",
+                ...{ role: role as "vendor" | "customer" },
                 callbackURL: redirectTo,
             });
 

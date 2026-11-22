@@ -6,23 +6,25 @@ const client = new MongoClient(process.env.BUTTER_AUTH_DB_URL as string);
 const db = client.db('wedplan');
 
 export const auth = betterAuth({
-     
+
     emailAndPassword: {
         enabled: true,
     },
-        user: {
-       additionalFields: {
-          role: {
-              type: ['vendor','customer'],
-              input: true
-            } 
+    user: {
+        additionalFields: {
+            role: {
+                type: ['vendor', 'customer', 'admin'],
+                required: true,
+                defaultValue: 'customer',
+                input: false,
+            }
         }
     },
-       socialProviders: {
-        google: { 
-            clientId: process.env.GOOGLE_CLIENT_ID as string, 
-            clientSecret: process.env.GOOGLE_CLIENT_SECRET as string, 
-        }, 
+    socialProviders: {
+        google: {
+            clientId: process.env.GOOGLE_CLIENT_ID as string,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+        },
     },
     database: mongodbAdapter(db, {
         client,
