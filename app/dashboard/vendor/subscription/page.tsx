@@ -9,6 +9,7 @@ import {
     Sparkles,
     Zap,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const plans = [
     {
@@ -40,6 +41,8 @@ const plans = [
 ];
 
 export default function SubscriptionPage() {
+    const router = useRouter();
+
     return (
         <div className="min-h-screen bg-[#FFF8FA] px-4 py-8 md:px-8">
 
@@ -161,7 +164,7 @@ export default function SubscriptionPage() {
                             {/* Button */}
                             {plan.premium ? (
                                 <button
-                                    type="button"
+                                    onClick={() => router.push("/payment")}
                                     className="mt-9 flex w-full items-center justify-center gap-2 rounded-xl bg-[#843047] px-5 py-3.5 text-sm font-semibold text-white shadow-md shadow-[#843047]/20 transition hover:bg-[#692438] active:scale-[0.98]"
                                 >
                                     <Zap size={17} />

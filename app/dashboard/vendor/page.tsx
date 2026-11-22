@@ -320,7 +320,7 @@ const VendorDashboardpage = () => {
 
                 <button
                     onClick={() => router.push("/payment")}
-                    className="bg-[#800000] hover:bg-[#600000] text-white px-7 py-4 rounded-xl font-semibold whitespace-nowrap transition-all shadow-md"
+                    className="bg-[#843047] hover:bg-[#542332] text-white px-6 py-3 rounded-xl font-semibold transition"
                 >
                     Upgrade to Premium
                 </button>
