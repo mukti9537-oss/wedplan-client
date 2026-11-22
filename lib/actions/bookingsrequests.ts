@@ -35,6 +35,11 @@ export const getApplications = async(query = ""): Promise<ApplicationRow[]> => {
     }
     return res.json();
 }
+export const getApplicationsCount = async(query = ""): Promise<{count: number}> => {
+    const res = await fetch(`${BASE_URL}/bookingsrequest?/count${query}`);
+    return res.json();
+}
+
 
 export const createApplication = async (data: ApplicationFormData) => {
     const response = await fetch(`${BASE_URL}/bookingsrequest`,{
@@ -46,3 +51,40 @@ export const createApplication = async (data: ApplicationFormData) => {
     })
     return response.json()
 }
+
+export const getVendorBookings = async (vendorEmail: string) => {
+    const res = await fetch(
+        `${BASE_URL}/vendor-bookings/${encodeURIComponent(vendorEmail)}`
+    );
+
+    if (!res.ok) {
+        throw new Error("Failed to fetch vendor bookings");
+    }
+
+    return res.json();
+};
+
+export const updateBookingStatus = async (
+    id: string,
+    vendorEmail: string,
+    status: "Accepted" | "Rejected"
+) => {
+    const res = await fetch(
+        `${BASE_URL}/vendor-bookings/${id}/status`,
+        {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ vendorEmail, status })
+        }
+    );
+
+    const result = await res.json();
+
+    if (!res.ok) {
+        throw new Error(result.message || "Failed to update booking");
+    }
+
+    return result;
+};

@@ -12,7 +12,7 @@ import {
 import { useSession } from "@/lib/auth-client";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { createApplication } from "@/lib/actions/bookingsrequests";
+import { createApplication, getApplicationsCount } from "@/lib/actions/bookingsrequests";
 
 const BookingForm = () => {
     const { data: session, isPending } = useSession();
@@ -41,41 +41,50 @@ const BookingForm = () => {
 
     const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-
         if (!session?.user) return;
 
         setLoading(true);
         setMessage("");
         setSuccess(false);
 
-        try {
-            const bookingsrequest = {
-                bookingId: serviceId,
-                customerId: session.user.id,
-                email: session.user.email,
-                BookingDate: eventDate,
-                BookingLocation: eventLocation,
-                AdditionalMessage: additionalMessage,
-            };
 
-            const result = await createApplication(bookingsrequest);
-            console.log("Booking Response:", result);
+        const countResult = await getApplicationsCount(`?bookingId=${serviceId}&customerId=${session.user.id}`);
+        if (countResult.count >= 3) {
+            router.push('/subscription')
+            return
+        }
+        else {
+            try {
+                const bookingsrequest = {
+                    bookingId: serviceId,
+                    customerId: session.user.id,
+                    customerName: session.user.name,
+                    email: session.user.email,
+                    BookingDate: eventDate,
+                    BookingLocation: eventLocation,
+                    AdditionalMessage: additionalMessage,
+                };
 
-            if (result.insertedId) {
-                setSuccess(true);
-                setMessage("Booking request submitted successfully!");
-                toast.success("Booking request submitted successfully!");
-                router.push("/browse-services");
-            } else {
+                const result = await createApplication(bookingsrequest);
+                console.log("Booking Response:", result);
+
+                if (result.insertedId) {
+                    setSuccess(true);
+                    setMessage("Booking request submitted successfully!");
+                    toast.success("Booking request submitted successfully!");
+                    router.push("/browse-services");
+                } else {
+                    setSuccess(false);
+                    setMessage("Unable to submit your booking request. Please try again.");
+                }
+            } catch (error) {
                 setSuccess(false);
                 setMessage("Unable to submit your booking request. Please try again.");
+                console.error("Booking request failed:", error);
+            } finally {
+                setLoading(false);
             }
-        } catch (error) {
-            setSuccess(false);
-            setMessage("Unable to submit your booking request. Please try again.");
-            console.error("Booking request failed:", error);
-        } finally {
-            setLoading(false);
+
         }
     };
 
@@ -183,8 +192,8 @@ const BookingForm = () => {
                     {message && (
                         <div
                             className={`p-4 rounded-xl text-sm border ${success
-                                    ? "bg-green-50 text-green-700 border-green-200"
-                                    : "bg-red-50 text-red-700 border-red-200"
+                                ? "bg-green-50 text-green-700 border-green-200"
+                                : "bg-red-50 text-red-700 border-red-200"
                                 }`}
                         >
                             {message}

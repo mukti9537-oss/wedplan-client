@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { getService } from "@/lib/actions/service";
+import { useRouter } from "next/navigation";
 
 type Service = {
     _id: string;
@@ -50,6 +51,7 @@ const bookings = [
 ];
 
 const VendorDashboardpage = () => {
+    const router = useRouter();
     const [services, setServices] = useState<Service[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -147,14 +149,16 @@ const VendorDashboardpage = () => {
                     <h2 className="text-2xl font-serif font-bold text-[#800000] mt-1">
                         Free Plan
                     </h2>
-
-                    <button className="text-sm text-[#800000] underline mt-2 font-semibold">
-                        Upgrade →
+                    <button
+                        onClick={() => router.push("/payment")}
+                        className="text-sm text-[#800000] underline mt-2 font-semibold"
+                    >
+                        Upgrade to Premium
                     </button>
+
                 </div>
 
             </div>
-
 
             {/* Main Dashboard Content */}
             <div className="grid grid-cols-1 2xl:grid-cols-5 gap-6 mb-8">
@@ -166,10 +170,6 @@ const VendorDashboardpage = () => {
                         <h2 className="text-xl md:text-2xl font-serif font-bold text-[#4b1727]">
                             Recent Booking Requests
                         </h2>
-
-                        <button className="text-[#800000] font-semibold flex items-center gap-2 text-sm">
-                            View All <ArrowRight size={17} />
-                        </button>
                     </div>
 
                     <div className="space-y-4">
@@ -234,7 +234,7 @@ const VendorDashboardpage = () => {
 
                 {/* My Services */}
                 <div className="2xl:col-span-2 bg-white border border-[#f0dfd9] rounded-2xl p-5 md:p-6 shadow-sm">
-                        <div className="flex items-center justify-between mb-5 border-b border-[#f0dfd9] pb-4">
+                    <div className="flex items-center justify-between mb-5 border-b border-[#f0dfd9] pb-4">
                         <h2 className="text-xl md:text-2xl font-serif font-bold text-[#4b1727]">
                             My Services
                         </h2>
@@ -280,7 +280,7 @@ const VendorDashboardpage = () => {
                                 </div>
 
                                 {/* Category Badge */}
-                                   <span
+                                <span
                                     className={`text-xs font-semibold px-3 py-1.5 rounded-full
                                          ${statusStyle[service.status || "Pending"]
                                         }`}
@@ -318,7 +318,10 @@ const VendorDashboardpage = () => {
 
                 </div>
 
-                <button className="bg-[#800000] hover:bg-[#600000] text-white px-7 py-4 rounded-xl font-semibold whitespace-nowrap transition-all shadow-md">
+                <button
+                    onClick={() => router.push("/payment")}
+                    className="bg-[#800000] hover:bg-[#600000] text-white px-7 py-4 rounded-xl font-semibold whitespace-nowrap transition-all shadow-md"
+                >
                     Upgrade to Premium
                 </button>
 
