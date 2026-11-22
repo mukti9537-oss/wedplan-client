@@ -541,6 +541,7 @@ const AdminDashboardpage = () => {
                                     height={10}
                                     src={service.serviceImage}
                                     alt={service.serviceName}
+                                    unoptimized
                                     className="w-full lg:w-24 h-36 lg:h-20 object-cover rounded-lg"
                                     onError={(e) => {
                                         (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1519741497674-611481863552?w=100";
