@@ -207,8 +207,8 @@ const MyServicesPage = () => {
                             <div className="relative h-52">
 
                                 <Image
-                                    width={500}
-                                    height={300}
+                                    width={10}
+                                    height={10}
                                     src={service.serviceImage}
                                     alt={service.serviceName}
                                     unoptimized

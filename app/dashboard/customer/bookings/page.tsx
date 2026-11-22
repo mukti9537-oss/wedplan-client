@@ -389,11 +389,11 @@ const CustomerBookingpage = () => {
 
                             {/* Service Image */}
                             <Image
-                                width={10}
-                                height={10}
+                                width={500}
+                                height={400}
                                 src={booking.serviceImage}
                                 alt={booking.serviceName}
-                                className="w-full lg:w-32 h-48 lg:h-28 object-cover rounded-lg bg-[#fce8e6]"
+                                className="w-full lg:w-32 h-48 lg:h-28 object-cover rounded-lg"
                             />
 
 
@@ -503,10 +503,11 @@ const CustomerBookingpage = () => {
                         </h2>
 
                         <Image
-                            width={10}
-                            height={10}
+                            width={800}
+                            height={500}
                             src={selectedBooking.serviceImage}
                             alt={selectedBooking.serviceName}
+                            unoptimized
                             className="w-full h-52 object-cover rounded-xl mb-5"
                         />
 

@@ -12,7 +12,7 @@ import {
 import { useSession } from "@/lib/auth-client";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { bookingRequestdData } from "@/lib/actions/bookingsrequests";
+import { createApplication } from "@/lib/actions/bookingsrequests";
 
 const BookingForm = () => {
     const { data: session, isPending } = useSession();
@@ -58,7 +58,7 @@ const BookingForm = () => {
                 AdditionalMessage: additionalMessage,
             };
 
-            const result = await bookingRequestdData(bookingsrequest);
+            const result = await createApplication(bookingsrequest);
             console.log("Booking Response:", result);
 
             if (result.insertedId) {

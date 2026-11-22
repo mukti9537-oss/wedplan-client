@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
     CalendarDays,
     Clock,
@@ -15,80 +15,191 @@ import {
     ArrowRight,
     Mail,
     Phone,
+    Loader2,
+    AlertCircle,
 } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
+import { useSession } from "@/lib/auth-client";
 
-const stats = [
-    {
-        title: "Total Booking Requests",
-        value: "12",
-        icon: CalendarDays,
-    },
-    {
-        title: "Pending Bookings",
-        value: "04",
-        icon: Clock,
-    },
-    {
-        title: "Accepted Bookings",
-        value: "06",
-        icon: CheckCircle2,
-    },
-    {
-        title: "Rejected Bookings",
-        value: "02",
-        icon: XCircle,
-    },
-];
+const BASE_URL =
+    process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
-const bookings = [
-    {
-        id: 1,
-        serviceName: "Wedding Photography",
-        vendorName: "Dream Lens Photography",
-        vendorEmail: "dreamlens@gmail.com",
-        eventDate: "December 25, 2026",
-        location: "Chattogram, Bangladesh",
-        requestDate: "November 15, 2026",
-        status: "Pending",
-        image: "https://images.unsplash.com/photo-1519741497674-611481863552?w=200",
-    },
-    {
-        id: 2,
-        serviceName: "Floral Decoration",
-        vendorName: "Bloom Wedding Decor",
-        vendorEmail: "bloom@gmail.com",
-        eventDate: "December 28, 2026",
-        location: "Dhaka, Bangladesh",
-        requestDate: "November 14, 2026",
-        status: "Accepted",
-        image: "https://images.unsplash.com/photo-1523438885200-e635ba2c371e?w=200",
-    },
-    {
-        id: 3,
-        serviceName: "Wedding Venue",
-        vendorName: "Royal Palace Events",
-        vendorEmail: "royal@gmail.com",
-        eventDate: "January 03, 2027",
-        location: "Chattogram, Bangladesh",
-        requestDate: "November 12, 2026",
-        status: "Rejected",
-        image: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=200",
-    },
-    {
-        id: 4,
-        serviceName: "Bridal Makeup",
-        vendorName: "Beauty Touch Studio",
-        vendorEmail: "beautytouch@gmail.com",
-        eventDate: "January 10, 2027",
-        location: "Chattogram, Bangladesh",
-        requestDate: "November 10, 2026",
-        status: "Pending",
-        image: "https://images.unsplash.com/photo-1487412947147-5cebf100ffc2?w=200",
-    },
-];
+interface Booking {
+    _id: string;
+    serviceName: string;
+    serviceImage: string;
+    vendorName: string;
+    vendorEmail: string;
+    customerName: string;
+    customerEmail: string;
+    eventDate: string;
+    eventLocation: string;
+    status: string;
+    requestDate: string;
+}
 
 const CustomerDashboardpage = () => {
+    const { data: session, isPending: sessionLoading } = useSession();
+    const customerEmail = session?.user?.email;
+
+    const [bookings, setBookings] = useState<Booking[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    // Fetch Customer Bookings from backend
+    const fetchBookings = async () => {
+        if (!customerEmail) return;
+
+        try {
+            setLoading(true);
+            setError("");
+
+            const res = await fetch(
+                `${BASE_URL}/my-bookings/${encodeURIComponent(customerEmail)}`,
+                {
+                    cache: "no-store",
+                }
+            );
+
+            if (!res.ok) {
+                throw new Error("Failed to load bookings");
+            }
+
+            const data = await res.json();
+
+            if (!Array.isArray(data)) {
+                throw new Error("Invalid booking response");
+            }
+
+            setBookings(data);
+        } catch (err) {
+            console.error("Booking Fetch Error:", err);
+            setError("Unable to load your bookings. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (sessionLoading) return;
+
+        const timeoutId = window.setTimeout(() => {
+            if (customerEmail) {
+                void fetchBookings();
+            } else {
+                setLoading(false);
+            }
+        }, 0);
+
+        return () => window.clearTimeout(timeoutId);
+    }, [customerEmail, sessionLoading]);
+
+    // Calculate stats from real data
+    const totalBookings = bookings.length;
+    const pendingBookings = bookings.filter(
+        (b) => b.status?.toLowerCase() === "pending"
+    ).length;
+    const acceptedBookings = bookings.filter(
+        (b) => b.status?.toLowerCase() === "accepted"
+    ).length;
+    const rejectedBookings = bookings.filter(
+        (b) => b.status?.toLowerCase() === "rejected"
+    ).length;
+
+    const stats = [
+        {
+            title: "Total Booking Requests",
+            value: totalBookings.toString(),
+            icon: CalendarDays,
+        },
+        {
+            title: "Pending Bookings",
+            value: pendingBookings.toString().padStart(2, "0"),
+            icon: Clock,
+        },
+        {
+            title: "Accepted Bookings",
+            value: acceptedBookings.toString().padStart(2, "0"),
+            icon: CheckCircle2,
+        },
+        {
+            title: "Rejected Bookings",
+            value: rejectedBookings.toString().padStart(2, "0"),
+            icon: XCircle,
+        },
+    ];
+
+    // Date Formatting
+    const formatDate = (date: string) => {
+        if (!date) return "Not available";
+
+        return new Date(date).toLocaleDateString("en-BD", {
+            day: "numeric",
+            month: "long",
+            year: "numeric",
+        });
+    };
+
+    // Status Styling
+    const getStatusStyle = (status: string) => {
+        switch (status?.toLowerCase()) {
+            case "pending":
+                return "bg-[#fff0d0] text-[#a65b08]";
+            case "accepted":
+                return "bg-[#dcf4df] text-[#18743b]";
+            case "rejected":
+                return "bg-[#fde2e2] text-[#b42323]";
+            case "cancelled":
+                return "bg-gray-100 text-gray-600";
+            default:
+                return "bg-gray-100 text-gray-600";
+        }
+    };
+
+    // Loading State
+    if (sessionLoading || loading) {
+        return (
+            <div className="min-h-[60vh] flex flex-col items-center justify-center bg-[#fffaf7]">
+                <Loader2
+                    size={38}
+                    className="animate-spin text-[#800000] mb-4"
+                />
+
+                <p className="text-[#806a70]">
+                    Loading your dashboard...
+                </p>
+            </div>
+        );
+    }
+
+
+    // Authentication Check
+    if (!customerEmail) {
+        return (
+            <div className="min-h-[60vh] flex flex-col items-center justify-center bg-[#fffaf7] px-5 text-center">
+
+                <UserRound size={45} className="text-[#800000] mb-4" />
+
+                <h2 className="text-2xl font-serif font-bold text-[#4b1727]">
+                    Login Required
+                </h2>
+
+                <p className="text-[#806a70] mt-3 mb-6">
+                    Please login to view your dashboard.
+                </p>
+
+                <Link
+                    href="/sign-in"
+                    className="bg-[#800000] text-white px-7 py-3 rounded-xl"
+                >
+                    Login Now
+                </Link>
+
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-[#fffaf7] p-5 md:p-8">
 
@@ -109,10 +220,13 @@ const CustomerDashboardpage = () => {
                     </p>
                 </div>
 
-                <button className="flex items-center justify-center gap-2 bg-[#800000] hover:bg-[#600000] text-white px-6 py-3 rounded-xl transition-all shadow-md">
+                <Link
+                    href="/browse-services"
+                    className="flex items-center justify-center gap-2 bg-[#800000] hover:bg-[#600000] text-white px-6 py-3 rounded-xl transition-all shadow-md"
+                >
                     <CalendarDays size={19} />
                     Browse Services
-                </button>
+                </Link>
 
             </div>
 
@@ -166,13 +280,58 @@ const CustomerDashboardpage = () => {
                 </div>
 
 
-                {/* Booking List */}
+                {/* Error State */}
+                {error && (
+                    <div className="bg-red-50 border border-red-200 text-red-700 p-4 rounded-xl flex items-center gap-3 mb-5">
+                        <AlertCircle size={20} />
+
+                        <span>{error}</span>
+
+                        <button
+                            onClick={fetchBookings}
+                            className="ml-auto font-semibold underline"
+                        >
+                            Retry
+                        </button>
+                    </div>
+                )}
+
+
+                {/* Empty State */}
+                {!error && bookings.length === 0 && (
+                    <div className="py-16 text-center">
+
+                        <CalendarCheck
+                            size={55}
+                            className="mx-auto text-[#c99a9a] mb-5"
+                        />
+
+                        <h3 className="text-2xl font-serif font-bold text-[#4b1727]">
+                            No Bookings Yet
+                        </h3>
+
+                        <p className="text-[#947e82] mt-2 mb-6">
+                            You haven&apos;t submitted any booking requests yet.
+                        </p>
+
+                        <Link
+                            href="/browse-services"
+                            className="inline-flex items-center gap-2 bg-[#800000] text-white px-6 py-3 rounded-xl hover:bg-[#600000] transition"
+                        >
+                            Explore Services
+                        </Link>
+
+                    </div>
+                )}
+
+
+                {/* Booking Cards */}
                 <div className="space-y-5">
 
                     {bookings.map((booking) => (
 
                         <div
-                            key={booking.id}
+                            key={booking._id}
                             className="flex flex-col lg:flex-row lg:items-center gap-5 border border-[#f3e8e3] rounded-xl p-4 hover:shadow-sm transition-all"
                         >
 
@@ -180,9 +339,10 @@ const CustomerDashboardpage = () => {
                             <Image
                                 width={10}
                                 height={10}
-                                src={booking.image}
+                                src={booking.serviceImage}
                                 alt={booking.serviceName}
-                                className="w-full lg:w-28 h-40 lg:h-24 object-cover rounded-lg"
+                                unoptimized
+                                className="w-full lg:w-28 h-40 lg:h-24 object-contain rounded-lg bg-[#fce8e6]"
                             />
 
 
@@ -200,12 +360,12 @@ const CustomerDashboardpage = () => {
 
                                 <div className="flex items-center gap-2 mt-2 text-sm text-[#806a70]">
                                     <CalendarDays size={15} className="text-[#800000]" />
-                                    <span>{booking.eventDate}</span>
+                                    <span>{formatDate(booking.eventDate)}</span>
                                 </div>
 
                                 <div className="flex items-center gap-2 mt-2 text-sm text-[#806a70]">
                                     <MapPin size={15} className="text-[#800000]" />
-                                    <span>{booking.location}</span>
+                                    <span>{booking.eventLocation}</span>
                                 </div>
 
                             </div>
@@ -217,43 +377,17 @@ const CustomerDashboardpage = () => {
                                 <div className="flex flex-col items-start lg:items-end">
 
                                     <span
-                                        className={`text-xs font-semibold px-4 py-2 rounded-full ${booking.status === "Pending"
-                                                ? "bg-[#fff0d0] text-[#a65b08]"
-                                                : booking.status === "Accepted"
-                                                    ? "bg-[#dcf4df] text-[#18743b]"
-                                                    : "bg-[#fde2e2] text-[#b42323]"
-                                            }`}
+                                        className={`text-xs font-semibold px-4 py-2 rounded-full ${getStatusStyle(
+                                            booking.status
+                                        )}`}
                                     >
                                         {booking.status}
                                     </span>
 
                                     <p className="text-xs text-[#947e82] mt-2">
-                                        Requested: {booking.requestDate}
+                                        Requested: {formatDate(booking.requestDate)}
                                     </p>
 
-                                </div>
-
-
-                                <div className="flex items-center gap-2">
-
-                                    <button
-                                        className="flex items-center gap-1.5 border border-[#800000] text-[#800000] px-3 py-2 rounded-lg text-xs font-semibold hover:bg-[#fff1f1] transition-all"
-                                    >
-                                        <Eye size={15} />
-                                        Details
-                                    </button>
-
-
-                                    {booking.status === "Pending" && (
-
-                                        <button
-                                            className="flex items-center gap-1.5 bg-[#800000] text-white px-3 py-2 rounded-lg text-xs font-semibold hover:bg-[#600000] transition-all"
-                                        >
-                                            <X size={15} />
-                                            Cancel
-                                        </button>
-
-                                    )}
 
                                 </div>
 
@@ -305,7 +439,7 @@ const CustomerDashboardpage = () => {
 
                         <div className="flex items-center justify-center sm:justify-start gap-2 mt-2 text-sm text-[#806a70]">
                             <Mail size={15} />
-                            customer@example.com
+                            {customerEmail || "customer@example.com"}
                         </div>
 
                         <div className="flex items-center justify-center sm:justify-start gap-2 mt-2 text-sm text-[#806a70]">
@@ -341,9 +475,12 @@ const CustomerDashboardpage = () => {
 
                 </div>
 
-                <button className="bg-[#800000] hover:bg-[#600000] text-white px-7 py-4 rounded-xl font-semibold whitespace-nowrap transition-all shadow-md">
+                <Link
+                    href="/browse-services"
+                    className="bg-[#800000] hover:bg-[#600000] text-white px-7 py-4 rounded-xl font-semibold whitespace-nowrap transition-all shadow-md"
+                >
                     Explore Services
-                </button>
+                </Link>
 
             </div>
 
