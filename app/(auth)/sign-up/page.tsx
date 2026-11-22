@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 import { authClient } from "@/lib/auth-client";
@@ -31,6 +31,17 @@ const SignUpPage = () => {
 
     const [profileImage, setProfileImage] = useState<File | null>(null);
     const [preview, setPreview] = useState("");
+    const searchParams = useSearchParams();
+
+    const requestedCallback = searchParams.get("callbackURL");
+
+    const redirectTo =
+        requestedCallback?.startsWith("/") &&
+            !requestedCallback.startsWith("//")
+            ? requestedCallback
+            : "/";
+
+
 
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -125,6 +136,7 @@ const SignUpPage = () => {
                 password,
                 image: imageUrl,
                 role: role as "vendor" | "customer",
+                callbackURL: redirectTo,
             });
 
             if (error) {
@@ -135,7 +147,7 @@ const SignUpPage = () => {
             if (data) {
                 toast.success("Account created successfully!");
 
-                router.replace("/");
+                router.replace(redirectTo);
                 router.refresh();
             }
         } catch (error) {
@@ -154,10 +166,9 @@ const SignUpPage = () => {
     const handleGoogleSignUp = async () => {
         try {
             setGoogleLoading(true);
-
             const { error } = await authClient.signIn.social({
                 provider: "google",
-                callbackURL: "/",
+                callbackURL: redirectTo,
             });
 
             if (error) {

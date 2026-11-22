@@ -3,12 +3,9 @@ import { getService } from "@/lib/actions/service";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Image from "next/image";
+import BookingButton from "@/app/components/BookingButton";
 
-const ServiceDetailsPage = async ({
-    params,
-}: {
-    params: Promise<{ id: string }>;
-}) => {
+const ServiceDetailsPage = async ({params }: { params: Promise<{ id: string }>}) => {
     const { id } = await params;
 
     // Validate service ID
@@ -69,11 +66,9 @@ const ServiceDetailsPage = async ({
     ].filter(Boolean);
 
     // Approval and active status
-    const isApproved =
-        service.isApproved === true ||
-        service.approvalStatus === "approved";
+    const isApproved = service.status === "Approved";
 
-    const isActive = service.isActive === true;
+    const isActive = service.isAvailable === true;
 
     const canBook = isApproved && isActive;
 
@@ -318,15 +313,10 @@ const ServiceDetailsPage = async ({
 
                             {/* Booking Option */}
                             {canBook ? (
-                                <Link
-                                    href={`/booking/${service._id}`}
-                                    className="block text-center w-full bg-[#8c1010] hover:bg-[#681010] text-white font-semibold py-4 rounded-lg transition duration-300"
-                                >
-                                    Request Booking →
-                                </Link>
+                                <BookingButton serviceId={String(service._id)} />
                             ) : (
                                 <button
-                                    disabled
+
                                     className="w-full bg-gray-300 text-gray-600 font-semibold py-4 rounded-lg cursor-not-allowed"
                                 >
                                     Booking Unavailable

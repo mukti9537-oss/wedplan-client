@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 import { authClient } from "@/lib/auth-client";
@@ -27,6 +27,15 @@ const SignInPage = () => {
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [googleLoading, setGoogleLoading] = useState(false);
+    const searchParams = useSearchParams();
+    
+        const requestedCallback = searchParams.get("callbackURL");
+    
+        const redirectTo =
+            requestedCallback?.startsWith("/") &&
+                !requestedCallback.startsWith("//")
+                ? requestedCallback
+                : "/";
 
     // Credential Login
     const handleSignIn = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -38,7 +47,7 @@ const SignInPage = () => {
             const { data, error } = await authClient.signIn.email({
                 email,
                 password,
-                callbackURL: "/",
+                callbackURL: redirectTo,
             });
 
             if (error) {
@@ -49,7 +58,7 @@ const SignInPage = () => {
             if (data) {
                 toast.success("Welcome back! Login successful.");
 
-                router.replace("/");
+                router.replace(redirectTo);
                 router.refresh();
             }
         } catch (error) {
@@ -72,7 +81,7 @@ const SignInPage = () => {
 
             const { error } = await authClient.signIn.social({
                 provider: "google",
-                callbackURL: "/",
+                callbackURL: redirectTo,
             });
 
             if (error) {
@@ -247,7 +256,7 @@ const SignInPage = () => {
                 <p className="mt-8 text-center text-sm text-[#806b6d]">
                     Don&apos;t have an account?{" "}
                     <Link
-                        href="/sign-up"
+                        href={`/sign-up?callbackURL=${encodeURIComponent(redirectTo)}`}
                         className="font-semibold text-[#8b1010] transition hover:underline"
                     >
                         Sign Up
