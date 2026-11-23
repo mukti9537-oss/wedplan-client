@@ -13,6 +13,7 @@ import { useSession } from "@/lib/auth-client";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { createApplication, getApplicationsCount } from "@/lib/actions/bookingsrequests";
+import { getPremiumById } from "@/lib/api/user";
 
 const BookingForm = () => {
     const { data: session, isPending } = useSession();
@@ -47,14 +48,7 @@ const BookingForm = () => {
         setMessage("");
         setSuccess(false);
 
-
-        const countResult = await getApplicationsCount(`?bookingId=${serviceId}&customerId=${session.user.id}`);
-        if (countResult.count >= 3) {
-            router.push('/subscription')
-            return
-        }
-        else {
-            try {
+        try {
                 const bookingsrequest = {
                     bookingId: serviceId,
                     customerId: session.user.id,
@@ -84,8 +78,6 @@ const BookingForm = () => {
             } finally {
                 setLoading(false);
             }
-
-        }
     };
 
     if (isPending || !session?.user) {

@@ -32,8 +32,12 @@ import {
 import Image from "next/image";
 import { createService } from "@/lib/actions/service";
 import { toast } from "react-toastify";
+import { getPremiumById } from "@/lib/api/user";
+import { getApplicationsCount } from "@/lib/actions/bookingsrequests";
+import { useRouter } from "next/navigation";
 
 const AddServicepage = () => {
+    const router = useRouter();
     const [image, setImage] = useState<File | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [category, setCategory] = useState("");
@@ -46,6 +50,8 @@ const AddServicepage = () => {
         e: React.ChangeEvent<HTMLInputElement>
     ) => {
         const file = e.target.files?.[0];
+        const userId = session?.user?.id;
+        if (!userId) return;
 
         if (file) {
             setImage(file);
@@ -64,14 +70,26 @@ const AddServicepage = () => {
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+        const formData = new FormData(e.currentTarget);
+
+        formData.append("category", category);
+        
         if (!session?.user) {
             toast.error("Please login first!");
             return;
         }
 
-        const formData = new FormData(e.currentTarget);
+        const premiumResult = await getPremiumById(session.user.id);
+        console.log('premiumResult:', premiumResult);
 
-        formData.append("category", category);
+        const servicesResult = await getApplicationsCount(session.user.id);
+
+        if (!premiumResult?.premium && servicesResult.count >= 3) {
+            toast.error("Upgrade to Premium to publish more than 3 services");
+            router.push("/dashboard/vendor/subscription");
+            return;
+        }
+
 
         // Logged-in vendor information
         formData.append("vendorName", vendorName);

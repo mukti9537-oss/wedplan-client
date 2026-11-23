@@ -13,10 +13,10 @@ export const auth = betterAuth({
     user: {
         additionalFields: {
             role: {
-                type: ['vendor', 'customer', 'admin'],
+                type: "string",
                 required: true,
-                defaultValue: 'customer',
-                input: false,
+                defaultValue: "customer",
+                input: true,
             }
         }
     },
