@@ -1,3 +1,7 @@
+'use server'
+
+import { authFetch } from "../core/server";
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
 type ApplicationRow = {
@@ -29,7 +33,8 @@ type ApplicationFormData = {
 };
 
 export const getApplications = async(query = ""): Promise<ApplicationRow[]> => {
-    const res = await fetch(`${BASE_URL}/bookingsrequest?${query}`);
+    const api = `${BASE_URL}/bookingsrequest?${query}`;
+    const res = await authFetch(api);
     if (!res.ok) {
         throw new Error("Failed to fetch applications");
     }
