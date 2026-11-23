@@ -1,7 +1,5 @@
-"use client";
-
-import { useState } from "react";
 import Link from "next/link";
+
 import {
     ArrowLeft,
     CreditCard,
@@ -9,52 +7,29 @@ import {
     Lock,
     Crown,
     CheckCircle,
-    Loader2,
 } from "lucide-react";
-import { toast } from "react-toastify";
 
-export default function CheckoutPage({SearchParams}: {SearchParams: Promise<{ plan?: string } | null>}) {
-    const [loading, setLoading] = useState(false);
+// import PayButton from "./pay-button";
+
+// interface CheckoutPageProps {
+//     searchParams: Promise<{
+//         plan?: string;
+//         canceled?: string;
+//     }>;
+// }
+
+export default async function CheckoutPage({ searchParams }: { searchParams: Promise<{ canceled?: string }> }) {
+
+    const { canceled } = await searchParams
+
+    if (canceled) {
+        console.log(
+            'Order canceled -- continue to shop around and check out when you\'re ready.'
+        )
+    }
 
     // Premium Plan Price
-    const premiumPrice = 20.00;
-
-    const handlePayment = async () => {
-        try {
-            setLoading(true);
-
-            // Stripe Checkout API
-            const response = await fetch("/api/checkout_sessions", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.message || "Payment session creation failed");
-            }
-
-            // Redirect to Stripe Checkout
-            if (data.url) {
-                window.location.href = data.url;
-            } else {
-                throw new Error("Stripe checkout URL not found");
-            }
-
-        } catch (error) {
-            console.error(error);
-            toast.error(
-                error instanceof Error
-                    ? error.message
-                    : "Something went wrong"
-            );
-        } finally {
-            setLoading(false);
-        }
-    };
+    const premiumPrice = 2000;
 
     return (
         <div className="min-h-screen bg-[#FFF8FA] px-4 py-10 md:py-16">
@@ -90,7 +65,6 @@ export default function CheckoutPage({SearchParams}: {SearchParams: Promise<{ pl
                 {/* Checkout Card */}
                 <div className="bg-white rounded-3xl border border-[#F3DDE5] shadow-lg shadow-[#843047]/5 overflow-hidden">
 
-                    {/* Top Border */}
                     <div className="h-1.5 bg-[#843047]" />
 
                     <div className="grid md:grid-cols-2">
@@ -124,7 +98,7 @@ export default function CheckoutPage({SearchParams}: {SearchParams: Promise<{ pl
                                 </div>
 
                                 <p className="font-bold text-[#542332] whitespace-nowrap">
-                                    ${premiumPrice.toLocaleString("en-BD")}
+                                    ৳{premiumPrice.toLocaleString("en-BD")}
                                 </p>
 
                             </div>
@@ -163,7 +137,7 @@ export default function CheckoutPage({SearchParams}: {SearchParams: Promise<{ pl
                                     </span>
 
                                     <span className="text-2xl font-bold text-[#843047]">
-                                        ${premiumPrice.toLocaleString("en-BD")}
+                                        ৳{premiumPrice.toLocaleString("en-BD")}
                                     </span>
 
                                 </div>
@@ -217,28 +191,17 @@ export default function CheckoutPage({SearchParams}: {SearchParams: Promise<{ pl
                             </div>
 
                             {/* Pay Button */}
-                            <button
-                                onClick={handlePayment}
-                                disabled={loading}
-                                className="mt-8 w-full flex items-center justify-center gap-2 rounded-xl bg-[#843047] hover:bg-[#692438] disabled:opacity-60 disabled:cursor-not-allowed text-white py-4 font-bold text-base shadow-lg shadow-[#843047]/20 transition active:scale-[0.98]"
-                            >
-
-                                {loading ? (
-                                    <>
-                                        <Loader2
-                                            size={19}
-                                            className="animate-spin"
-                                        />
-                                        Processing...
-                                    </>
-                                ) : (
-                                    <>
-                                        Pay ${premiumPrice.toLocaleString("en-BD")}
-                                        <CreditCard size={19} />
-                                    </>
-                                )}
-
-                            </button>
+                            {/* <PayButton premiumPrice={premiumPrice} /> */}
+                            <form action="/api/checkout_sessions" method="POST">
+                                <section>
+                                    <button
+                                        type="submit" role="link"
+                                        className="mt-8 w-full flex items-center justify-center gap-2 rounded-xl bg-[#843047] hover:bg-[#692438] disabled:opacity-60 disabled:cursor-not-allowed text-white py-4 font-bold text-base shadow-lg shadow-[#843047]/20 transition active:scale-[0.98]"
+                                    >
+                                        Checkout ${premiumPrice.toLocaleString("en-BD")}
+                                    </button>
+                                </section>
+                            </form>
 
                             {/* Stripe Information */}
                             <div className="mt-5 flex items-center justify-center gap-2 text-gray-400">
