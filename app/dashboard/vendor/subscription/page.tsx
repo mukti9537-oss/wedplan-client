@@ -164,7 +164,7 @@ export default function SubscriptionPage() {
                             {/* Button */}
                             {plan.premium ? (
                                 <button
-                                    onClick={() => router.push("/payment")}
+                                    onClick={() => router.push("/checkout")}
                                     className="mt-9 flex w-full items-center justify-center gap-2 rounded-xl bg-[#843047] px-5 py-3.5 text-sm font-semibold text-white shadow-md shadow-[#843047]/20 transition hover:bg-[#692438] active:scale-[0.98]"
                                 >
                                     <Zap size={17} />
