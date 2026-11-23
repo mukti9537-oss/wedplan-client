@@ -12,8 +12,33 @@ import {
 import { useSession } from "@/lib/auth-client";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
-import { createApplication, getApplicationsCount } from "@/lib/actions/bookingsrequests";
-import { getPremiumById } from "@/lib/api/user";
+
+
+const createApplication = async (bookingRequest: {
+    bookingId: string;
+    customerId: string;
+    customerName: string;
+    email: string;
+    BookingDate: string;
+    BookingLocation: string;
+    AdditionalMessage: string;
+}) => {
+    const response = await fetch("/api/bookings", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(bookingRequest),
+    });
+
+    const result = await response.json().catch(() => null);
+
+    if (!response.ok) {
+        throw new Error(result?.message || "Unable to submit booking request.");
+    }
+
+    return result;
+};
 
 const BookingForm = () => {
     const { data: session, isPending } = useSession();

@@ -9,7 +9,6 @@ import {
     Heart,
     ArrowRight,
     Camera,
-    DollarSign,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -73,7 +72,7 @@ const AddServicepage = () => {
         const formData = new FormData(e.currentTarget);
 
         formData.append("category", category);
-        
+
         if (!session?.user) {
             toast.error("Please login first!");
             return;
