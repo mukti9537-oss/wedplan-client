@@ -31,8 +31,6 @@ import {
 import Image from "next/image";
 import { createService } from "@/lib/actions/service";
 import { toast } from "react-toastify";
-import { getPremiumById } from "@/lib/api/user";
-import { getApplicationsCount } from "@/lib/actions/bookingsrequests";
 import { useRouter } from "next/navigation";
 
 const AddServicepage = () => {
@@ -67,54 +65,49 @@ const AddServicepage = () => {
         setPreview(null);
     };
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        const formData = new FormData(e.currentTarget);
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-        formData.append("category", category);
+    if (!session?.user) {
+        toast.error("Please login first!");
+        return;
+    }
 
-        if (!session?.user) {
-            toast.error("Please login first!");
-            return;
-        }
+    const formData = new FormData(e.currentTarget);
 
-        const premiumResult = await getPremiumById(session.user.id);
+    formData.append("category", category);
+    formData.append("vendorName", vendorName);
+    formData.append("vendorEmail", vendorEmail);
 
-        // The server counts the active services of the authenticated vendor
-        const servicesResult = await getApplicationsCount(session.user.email);
+    if (image) {
+        formData.append("serviceImage", image);
+    }
 
-        if (!premiumResult?.premium && servicesResult.count >= 3) {
-            toast.error("Upgrade to Premium to publish more than 3 services");
+    try {
+        const result = await createService(formData);
+
+        if (result?.upgradeRequired) {
+            toast.error("Free plan allows only 3 services. Upgrade to Premium.");
             router.push("/dashboard/vendor/subscription");
             return;
         }
 
-
-        // Logged-in vendor information
-        formData.append("vendorName", vendorName);
-        formData.append("vendorEmail", vendorEmail);
-
-        if (image) {
-            formData.append("serviceImage", image);
+        if (result?.success === true) {
+            toast.success("Service added successfully!");
+            e.currentTarget.reset();
+            setImage(null);
+            setPreview(null);
+            setCategory("");
+            router.refresh();
+        } else {
+            toast.error(result?.message || "Failed to add service!");
         }
 
-        try {
-            const result = await createService(formData);
-            console.log("createservice result: ", result);
-            console.log("Inserted:", result?.inserted);
-            console.log("Success:", result?.success);
-
-            if (result?.success === true) {
-                toast.success("Service added successfully!");
-            } else {
-                toast.error("Failed to add service!");
-            }
-
-        } catch (error) {
-            console.error(error);
-            toast.error("Failed to add service!");
-        }
-    };
+    } catch (error) {
+        console.error(error);
+        toast.error("Failed to add service!");
+    }
+};
 
     return (
         <div className="min-h-screen bg-[#FBF2F0] px-4 py-12 md:px-8">
