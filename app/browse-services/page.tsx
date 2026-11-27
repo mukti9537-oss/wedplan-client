@@ -2,6 +2,7 @@ import { getService } from '@/lib/actions/service';
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 
 const BrowseServicesPage = async ({
     searchParams
@@ -18,7 +19,22 @@ const BrowseServicesPage = async ({
 
     const query = urlSearch.toString();
 
-    const service = await getService(query);
+    // A failed API request must never crash the page - show a friendly
+    // error state instead (avoids React error #441 in production).
+    let service: unknown[] = [];
+    let loadError = false;
+
+    try {
+        const result = await getService(query);
+        service = Array.isArray(result)
+            ? result
+            : (result as { services?: unknown[] })?.services ||
+              (result as { data?: unknown[] })?.data ||
+              [];
+    } catch (error) {
+        console.error('Browse services error:', error);
+        loadError = true;
+    }
 
     // Only show approved and active services to public
     const approvedServices = Array.isArray(service)
@@ -153,7 +169,35 @@ const BrowseServicesPage = async ({
 
 
                 {/* Service Listing */}
-                {approvedServices.length === 0 ? (
+                {loadError ? (
+
+                    /* Error State (API unreachable) */
+                    <div className="rounded-2xl border border-dashed border-[#DDBFC3] bg-white px-5 py-20 text-center">
+
+                        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-[#FCE8E6]">
+                            <AlertCircle size={26} className="text-[#850D0D]" />
+                        </div>
+
+                        <h3 className="text-2xl font-bold text-[#461A2B]">
+                            Unable to Load Services
+                        </h3>
+
+                        <p className="mt-3 text-gray-500">
+                            We couldn&apos;t reach the WedPlan server right now.
+                            Please try again in a moment.
+                        </p>
+
+                        <Link
+                            href="/browse-services"
+                            className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#850D0D] px-7 py-3 text-sm font-semibold text-white hover:bg-[#650909]"
+                        >
+                            <RefreshCw size={15} />
+                            Try Again
+                        </Link>
+
+                    </div>
+
+                ) : approvedServices.length === 0 ? (
 
                     /* Empty State */
                     <div className="rounded-2xl border border-dashed border-[#DDBFC3] bg-white px-5 py-20 text-center">
@@ -192,14 +236,21 @@ const BrowseServicesPage = async ({
                                 {/* Service Image */}
                                 <div className="relative h-56 overflow-hidden">
 
-                                    <Image
-                                        width={10}
-                                        height={10}
-                                        src={item.serviceImage}
-                                        alt={item.serviceName}
-                                        unoptimized
-                                        className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
-                                    />
+                                    {typeof item.serviceImage === 'string' &&
+                                    item.serviceImage.trim() ? (
+                                        <Image
+                                            width={10}
+                                            height={10}
+                                            src={item.serviceImage}
+                                            alt={item.serviceName}
+                                            unoptimized
+                                            className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
+                                        />
+                                    ) : (
+                                        <div className="flex h-full w-full items-center justify-center bg-[#FCE8E6] text-4xl text-[#850D0D]">
+                                            ♡
+                                        </div>
+                                    )}
 
                                     <span className="absolute left-4 top-4 rounded-full bg-white px-4 py-1.5 text-xs font-bold text-[#850D0D] shadow">
                                         {item.category}

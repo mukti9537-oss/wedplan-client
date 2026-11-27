@@ -9,10 +9,16 @@ const jwtCache = new Map<string, { token: string; expires: number }>();
 
 export const getSession = async () => {
     "use server";
-    const session = await auth.api.getSession({
-        headers: await headers()
-    })
-    return session
+    try {
+        const session = await auth.api.getSession({
+            headers: await headers()
+        })
+        return session ?? null
+    } catch (error) {
+        // Never let a session lookup crash a server render (#441).
+        console.error("Failed to read session:", error);
+        return null;
+    }
 }
 
 /**
