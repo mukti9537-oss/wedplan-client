@@ -54,10 +54,14 @@ const handleUpdateProfile = async (
             const formData = new FormData();
             formData.append("profileImage", selectedImage);
 
+            const { getAuthHeaders } = await import("@/lib/core/auth-headers");
+            const headers = await getAuthHeaders();
+
             const uploadRes = await fetch(
-                "http://localhost:8000/upload-profile-image",
+                `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000"}/upload-profile-image`,
                 {
                     method: "POST",
+                    headers,
                     body: formData,
                 }
             );

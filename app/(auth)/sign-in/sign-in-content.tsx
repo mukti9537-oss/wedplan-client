@@ -58,7 +58,15 @@ export default function SignInContent() {
             if (data) {
                 toast.success("Welcome back! Login successful.");
 
-                router.replace(redirectTo);
+                // Redirect users according to their role when no callback is set
+                const userRole =
+                    (data.user?.role as string | undefined) || "customer";
+                const target =
+                    redirectTo !== "/"
+                        ? redirectTo
+                        : `/dashboard/${userRole}`;
+
+                router.replace(target);
                 router.refresh();
             }
         } catch (error) {
@@ -81,7 +89,9 @@ export default function SignInContent() {
 
             const { error } = await authClient.signIn.social({
                 provider: "google",
-                callbackURL: redirectTo,
+                // After Google login the /dashboard route redirects by role
+                callbackURL:
+                    redirectTo !== "/" ? redirectTo : "/dashboard",
             });
 
             if (error) {

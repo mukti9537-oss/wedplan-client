@@ -15,6 +15,7 @@ import Image from "next/image";
 import { toast } from "react-toastify";
 
 import { getService, deleteService as deleteServiceAPI, updateService } from "@/lib/api/service";
+import { useSession } from "@/lib/auth-client";
 
 interface Service {
     _id: string;
@@ -31,6 +32,7 @@ interface Service {
 const MyServicesPage = () => {
 
     const router = useRouter();
+    const { data: session } = useSession();
 
     const [services, setServices] = useState<Service[]>([]);
     const [loading, setLoading] = useState(true);
@@ -38,7 +40,7 @@ const MyServicesPage = () => {
 
     const [viewService, setViewService] = useState<Service | null>(null);
 
-    // Fetch Services
+    // Fetch Services (only the logged-in vendor's own services)
     useEffect(() => {
 
         const fetchServices = async () => {
@@ -47,13 +49,19 @@ const MyServicesPage = () => {
 
                 const result = await getService();
 
-                console.log("Fetched Services:", result);
-
                 const data = Array.isArray(result)
                     ? result
                     : result?.services || result?.data || [];
 
-                setServices(data);
+                const vendorEmail = session?.user?.email || "";
+                const ownServices = vendorEmail
+                    ? data.filter(
+                          (s: Service & { vendorEmail?: string }) =>
+                              s.vendorEmail === vendorEmail
+                      )
+                    : [];
+
+                setServices(ownServices);
 
             } catch (error) {
 
@@ -69,9 +77,11 @@ const MyServicesPage = () => {
 
         };
 
-        fetchServices();
+        if (session) {
+            fetchServices();
+        }
 
-    }, []);
+    }, [session]);
 
     // Toggle Availability
     const toggleAvailability = async (id: string) => {

@@ -14,6 +14,8 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 
 
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
+
 const createApplication = async (bookingRequest: {
     bookingId: string;
     customerId: string;
@@ -23,10 +25,14 @@ const createApplication = async (bookingRequest: {
     BookingLocation: string;
     AdditionalMessage: string;
 }) => {
-    const response = await fetch("/api/bookings", {
+    const { getAuthHeaders } = await import("@/lib/core/auth-headers");
+    const headers = await getAuthHeaders();
+
+    const response = await fetch(`${BASE_URL}/bookingsrequest`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
+            ...headers,
         },
         body: JSON.stringify(bookingRequest),
     });
@@ -69,6 +75,13 @@ const BookingForm = () => {
         event.preventDefault();
         if (!session?.user) return;
 
+        // Invalid service id -> show an appropriate error message
+        if (!/^[0-9a-fA-F]{24}$/.test(serviceId)) {
+            setSuccess(false);
+            setMessage("Invalid service selected. Please try again from Browse Services.");
+            return;
+        }
+
         setLoading(true);
         setMessage("");
         setSuccess(false);
@@ -85,20 +98,25 @@ const BookingForm = () => {
                 };
 
                 const result = await createApplication(bookingsrequest);
-                console.log("Booking Response:", result);
 
                 if (result.insertedId) {
                     setSuccess(true);
                     setMessage("Booking request submitted successfully!");
                     toast.success("Booking request submitted successfully!");
-                    router.push("/browse-services");
+                    router.push("/dashboard/customer/bookings");
+                    router.refresh();
                 } else {
                     setSuccess(false);
-                    setMessage("Unable to submit your booking request. Please try again.");
+                    setMessage(result?.message || "Unable to submit your booking request. Please try again.");
                 }
             } catch (error) {
                 setSuccess(false);
-                setMessage("Unable to submit your booking request. Please try again.");
+                const errorMsg =
+                    error instanceof Error && error.message
+                        ? error.message
+                        : "Unable to submit your booking request. Please try again.";
+                setMessage(errorMsg);
+                toast.error(errorMsg);
                 console.error("Booking request failed:", error);
             } finally {
                 setLoading(false);

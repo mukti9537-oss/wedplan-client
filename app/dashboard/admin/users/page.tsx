@@ -63,8 +63,12 @@ export default function ManageUsersPage() {
         setLoading(true);
 
         try {
+            const { getAuthHeaders } = await import("@/lib/core/auth-headers");
+            const headers = await getAuthHeaders();
+
             const res = await fetch(`${BASE_URL}/users`, {
                 cache: "no-store",
+                headers,
             });
 
             if (!res.ok) {

@@ -145,7 +145,13 @@ export default function SignUpContent() {
             if (data) {
                 toast.success("Account created successfully!");
 
-                router.replace(redirectTo);
+                // Redirect to the selected role's dashboard (or the requested page)
+                const target =
+                    redirectTo !== "/"
+                        ? redirectTo
+                        : `/dashboard/${role}`;
+
+                router.replace(target);
                 router.refresh();
             }
         } catch (error) {
@@ -165,7 +171,9 @@ export default function SignUpContent() {
             setGoogleLoading(true);
             const { error } = await authClient.signIn.social({
                 provider: "google",
-                callbackURL: redirectTo,
+                // Google accounts default to the customer dashboard via /dashboard
+                callbackURL:
+                    redirectTo !== "/" ? redirectTo : "/dashboard",
             });
 
             if (error) {

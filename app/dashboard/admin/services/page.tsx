@@ -128,12 +128,16 @@ export default function ManageServicesPage() {
         try {
             setProcessingId(service._id);
 
+            const { getAuthHeaders } = await import("@/lib/core/auth-headers");
+            const headers = await getAuthHeaders();
+
             const response = await fetch(
                 `${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000"}/services/${service._id}/availability`,
                 {
                     method: "PATCH",
                     headers: {
                         "Content-Type": "application/json",
+                        ...headers,
                     },
                     body: JSON.stringify({
                         isAvailable: !service.isAvailable,
@@ -142,7 +146,8 @@ export default function ManageServicesPage() {
             );
 
             if (!response.ok) {
-                throw new Error("Failed to update availability");
+                const result = await response.json().catch(() => null);
+                throw new Error(result?.message || "Failed to update availability");
             }
 
             setServices((prev) =>

@@ -32,38 +32,48 @@ type ApplicationFormData = {
     AdditionalMessage?: string;
 };
 
-export const getApplications = async(query = ""): Promise<ApplicationRow[]> => {
+export const getApplications = async (query = ""): Promise<ApplicationRow[]> => {
     const api = `${BASE_URL}/bookingsrequest?${query}`;
     const res = await authFetch(api);
     if (!res.ok) {
         throw new Error("Failed to fetch applications");
     }
     return res.json();
-}
-export const getApplicationsCount = async(query = ""): Promise<{count: number}> => {
-    const res = await fetch(`${BASE_URL}/bookingsrequest?/count${query}`);
-    return res.json();
-}
+};
 
+// Count of the vendor's active services (used for the free plan limit)
+export const getApplicationsCount = async (
+    vendorEmail = ""
+): Promise<{ count: number }> => {
+    const query = vendorEmail
+        ? `vendorEmail=${encodeURIComponent(vendorEmail)}`
+        : "";
+    const res = await authFetch(`${BASE_URL}/services/count?${query}`);
+    if (!res.ok) {
+        throw new Error("Failed to count services");
+    }
+    return res.json();
+};
 
 export const createApplication = async (data: ApplicationFormData) => {
-    const response = await fetch(`${BASE_URL}/bookingsrequest`,{
+    const response = await authFetch(`${BASE_URL}/bookingsrequest`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify(data)
-    })
-    return response.json()
-}
+        body: JSON.stringify(data),
+    });
+    return response.json();
+};
 
 export const getVendorBookings = async (vendorEmail: string) => {
-    const res = await fetch(
+    const res = await authFetch(
         `${BASE_URL}/vendor-bookings/${encodeURIComponent(vendorEmail)}`
     );
 
     if (!res.ok) {
-        throw new Error("Failed to fetch vendor bookings");
+        const result = await res.json().catch(() => null);
+        throw new Error(result?.message || "Failed to fetch vendor bookings");
     }
 
     return res.json();
@@ -74,21 +84,18 @@ export const updateBookingStatus = async (
     vendorEmail: string,
     status: "Accepted" | "Rejected"
 ) => {
-    const res = await fetch(
-        `${BASE_URL}/vendor-bookings/${id}/status`,
-        {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ vendorEmail, status })
-        }
-    );
+    const res = await authFetch(`${BASE_URL}/vendor-bookings/${id}/status`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ vendorEmail, status }),
+    });
 
-    const result = await res.json();
+    const result = await res.json().catch(() => null);
 
     if (!res.ok) {
-        throw new Error(result.message || "Failed to update booking");
+        throw new Error(result?.message || "Failed to update booking");
     }
 
     return result;

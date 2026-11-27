@@ -63,10 +63,14 @@ const CustomerBookingpage = () => {
             setLoading(true);
             setError("");
 
+            const { getAuthHeaders } = await import("@/lib/core/auth-headers");
+            const headers = await getAuthHeaders();
+
             const res = await fetch(
                 `${BASE_URL}/my-bookings/${encodeURIComponent(customerEmail)}`,
                 {
                     cache: "no-store",
+                    headers,
                 }
             );
 
@@ -115,12 +119,16 @@ const CustomerBookingpage = () => {
         try {
             setCancelling(true);
 
+            const { getAuthHeaders } = await import("@/lib/core/auth-headers");
+            const headers = await getAuthHeaders();
+
             const res = await fetch(
                 `${BASE_URL}/booking/${cancelBooking._id}/cancel`,
                 {
                     method: "PATCH",
                     headers: {
                         "Content-Type": "application/json",
+                        ...headers,
                     },
                     body: JSON.stringify({
                         customerEmail,

@@ -1,9 +1,10 @@
 import React from "react";
 import { getService } from "@/lib/actions/service";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import BookingButton from "@/app/components/BookingButton";
+import { getSession } from "@/lib/core/server";
 
 const ServiceDetailsPage = async ({params }: { params: Promise<{ id: string }>}) => {
     const { id } = await params;
@@ -12,6 +13,23 @@ const ServiceDetailsPage = async ({params }: { params: Promise<{ id: string }>})
     if (!/^[0-9a-fA-F]{24}$/.test(id)) {
         notFound();
     }
+
+    // Service details require authentication: unauthenticated visitors are
+    // redirected to Sign In and come back to this exact service afterwards.
+    const session = await getSession();
+
+    if (!session) {
+        redirect(
+            `/sign-in?callbackURL=${encodeURIComponent(`/browse-services/${id}`)}`
+        );
+    }
+
+    if (session.user.isBlocked) {
+        redirect("/unauthorized");
+    }
+
+    const viewerRole = session.user.role || "customer";
+    const viewerEmail = session.user.email || "";
 
     let result;
     let loadError = false;
@@ -55,6 +73,17 @@ const ServiceDetailsPage = async ({params }: { params: Promise<{ id: string }>})
 
     // Service not found
     if (!service) {
+        notFound();
+    }
+
+    // Only approved + active services are visible to the public.
+    // The owning vendor and admins may still preview their own services.
+    const isOwnerOrAdmin =
+        viewerRole === "admin" ||
+        (service.vendorEmail &&
+            String(service.vendorEmail).toLowerCase() === viewerEmail.toLowerCase());
+
+    if ((service.status !== "Approved" || service.isAvailable === false) && !isOwnerOrAdmin) {
         notFound();
     }
 

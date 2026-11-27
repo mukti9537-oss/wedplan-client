@@ -15,6 +15,7 @@ import {
     Trash2,
     Crown,
     Filter,
+    Wallet,
     User as UserIcon,
     Mail as MailIcon,
 } from "lucide-react";
@@ -26,6 +27,7 @@ import {
     approveRejectService,
     deleteServiceAdmin,
 } from "@/lib/api/admin";
+import { getTransactions } from "@/lib/api/user";
 
 interface User {
     _id: string;
@@ -85,6 +87,7 @@ const AdminDashboardpage = () => {
     const [services, setServices] = useState<Service[]>([]);
     const [userLoading, setUserLoading] = useState(false);
     const [serviceLoading, setServiceLoading] = useState(false);
+    const [transactionsCount, setTransactionsCount] = useState(0);
 
     // Search and filter states
     const [userSearch, setUserSearch] = useState("");
@@ -100,7 +103,12 @@ const AdminDashboardpage = () => {
     const fetchUsers = async () => {
         setUserLoading(true);
         try {
-            const res = await fetch(`${BASE_URL}/users`, { cache: "no-store" });
+            const { getAuthHeaders } = await import("@/lib/core/auth-headers");
+            const headers = await getAuthHeaders();
+            const res = await fetch(`${BASE_URL}/users`, {
+                cache: "no-store",
+                headers,
+            });
             if (!res.ok) throw new Error("Failed to fetch users");
             const data = await res.json();
             const userData = Array.isArray(data) ? data : data.users || [];
@@ -163,6 +171,14 @@ const AdminDashboardpage = () => {
         const timeoutId = window.setTimeout(() => {
             void fetchUsers();
             void fetchServices();
+            void (async () => {
+                try {
+                    const data = await getTransactions();
+                    setTransactionsCount(Array.isArray(data) ? data.length : 0);
+                } catch (err) {
+                    console.error("Fetch Transactions Error:", err);
+                }
+            })();
         }, 0);
 
         return () => window.clearTimeout(timeoutId);
@@ -250,7 +266,6 @@ const AdminDashboardpage = () => {
     const pendingServices = services.filter(
         (s) => s.status === "Pending"
     ).length;
-    const blockedUsers = users.filter((u) => u.isBlocked).length;
 
     const stats = [
         {
@@ -279,9 +294,9 @@ const AdminDashboardpage = () => {
             icon: Clock,
         },
         {
-            title: "Blocked Users",
-            value: blockedUsers.toString(),
-            icon: Ban,
+            title: "Total Transactions",
+            value: transactionsCount.toString(),
+            icon: Wallet,
         },
     ];
 

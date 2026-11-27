@@ -79,9 +79,9 @@ const AddServicepage = () => {
         }
 
         const premiumResult = await getPremiumById(session.user.id);
-        console.log('premiumResult:', premiumResult);
 
-        const servicesResult = await getApplicationsCount(session.user.id);
+        // The server counts the active services of the authenticated vendor
+        const servicesResult = await getApplicationsCount(session.user.email);
 
         if (!premiumResult?.premium && servicesResult.count >= 3) {
             toast.error("Upgrade to Premium to publish more than 3 services");

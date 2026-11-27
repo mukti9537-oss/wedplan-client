@@ -60,6 +60,11 @@ const menuItemsByRole = {
             url: "/dashboard/vendor/subscription",
             icon: Crown,
         },
+        {
+            name: "Profile Settings",
+            url: "/profile-settings",
+            icon: Settings,
+        },
     ],
 
     // Customer Menu

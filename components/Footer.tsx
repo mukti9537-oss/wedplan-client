@@ -49,7 +49,9 @@ const Footer = () => {
                         {/* Social Media */}
                         <div className="mt-6 flex items-center gap-3">
                             <a
-                                href="#"
+                                href="https://www.facebook.com"
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 aria-label="Facebook"
                                 className="flex h-9 w-9 items-center justify-center rounded-full border border-[#b78b96] transition hover:border-[#8b1010] hover:bg-[#8b1010]"
                             >
@@ -57,7 +59,9 @@ const Footer = () => {
                             </a>
 
                             <a
-                                href="#"
+                                href="https://www.instagram.com"
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 aria-label="Instagram"
                                 className="flex h-9 w-9 items-center justify-center rounded-full border border-[#b78b96] transition hover:border-[#8b1010] hover:bg-[#8b1010]"
                             >
@@ -65,7 +69,9 @@ const Footer = () => {
                             </a>
 
                             <a
-                                href="#"
+                                href="https://www.linkedin.com"
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 aria-label="LinkedIn"
                                 className="flex h-9 w-9 items-center justify-center rounded-full border border-[#b78b96] transition hover:border-[#8b1010] hover:bg-[#8b1010]"
                             >
@@ -73,7 +79,9 @@ const Footer = () => {
                             </a>
 
                             <a
-                                href="#"
+                                href="https://www.youtube.com"
+                                target="_blank"
+                                rel="noopener noreferrer"
                                 aria-label="YouTube"
                                 className="flex h-9 w-9 items-center justify-center rounded-full border border-[#b78b96] transition hover:border-[#8b1010] hover:bg-[#8b1010]"
                             >
@@ -97,19 +105,19 @@ const Footer = () => {
                             </li>
 
                             <li>
-                                <Link href="/services" className="transition hover:text-white">
+                                <Link href="/browse-services" className="transition hover:text-white">
                                     Browse Services
                                 </Link>
                             </li>
 
                             <li>
-                                <Link href="/about" className="transition hover:text-white">
+                                <Link href="/#why" className="transition hover:text-white">
                                     About Us
                                 </Link>
                             </li>
 
                             <li>
-                                <Link href="/contact" className="transition hover:text-white">
+                                <Link href="mailto:hello@wedplan.com" className="transition hover:text-white">
                                     Contact
                                 </Link>
                             </li>
@@ -138,31 +146,31 @@ const Footer = () => {
                         <ul className="space-y-3 text-sm text-[#e8d5d7]">
 
                             <li>
-                                <Link href="/services" className="transition hover:text-white">
+                                <Link href="/browse-services" className="transition hover:text-white">
                                     Full Wedding Planning
                                 </Link>
                             </li>
 
                             <li>
-                                <Link href="/services" className="transition hover:text-white">
+                                <Link href="/browse-services" className="transition hover:text-white">
                                     Partial Planning
                                 </Link>
                             </li>
 
                             <li>
-                                <Link href="/services" className="transition hover:text-white">
+                                <Link href="/browse-services" className="transition hover:text-white">
                                     Day-Of Coordination
                                 </Link>
                             </li>
 
                             <li>
-                                <Link href="/services" className="transition hover:text-white">
+                                <Link href="/browse-services" className="transition hover:text-white">
                                     Venue Selection
                                 </Link>
                             </li>
 
                             <li>
-                                <Link href="/services" className="transition hover:text-white">
+                                <Link href="/browse-services" className="transition hover:text-white">
                                     Wedding Decoration
                                 </Link>
                             </li>
@@ -206,7 +214,7 @@ const Footer = () => {
                         </ul>
 
                         <Link
-                            href="/services"
+                            href="/browse-services"
                             className="mt-7 inline-flex items-center gap-2 text-sm font-medium text-[#f1c6ce] transition hover:text-white"
                         >
                             Explore Our Services

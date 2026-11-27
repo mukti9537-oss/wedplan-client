@@ -1,17 +1,27 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 import {
     BriefcaseBusiness,
     CheckCircle2,
     CalendarCheck,
+    Clock,
+    Power,
     Crown,
     ArrowRight,
+    Loader2,
 } from "lucide-react";
 import Image from "next/image";
 import { getService } from "@/lib/actions/service";
+import {
+    getVendorBookings,
+    updateBookingStatus,
+} from "@/lib/actions/bookingsrequests";
+import { getPremiumById } from "@/lib/api/user";
+import { useSession } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 type Service = {
     _id: string;
@@ -21,6 +31,16 @@ type Service = {
     location: string;
     serviceImage: string;
     status?: "Approved" | "Pending" | "Rejected";
+    isAvailable?: boolean;
+    vendorEmail?: string;
+};
+
+type Booking = {
+    _id: string;
+    customerName?: string;
+    serviceName: string;
+    eventDate?: string;
+    status?: string;
 };
 
 const statusStyle: Record<NonNullable<Service["status"]>, string> = {
@@ -29,46 +49,99 @@ const statusStyle: Record<NonNullable<Service["status"]>, string> = {
     Rejected: "bg-[#fde2e2] text-[#b42318]",
 };
 
-const bookings = [
-    {
-        name: "Sarah Ahmed",
-        service: "Wedding Photography",
-        date: "Dec 25, 2026",
-        status: "Pending",
-    },
-    {
-        name: "Nusrat Jahan",
-        service: "Floral Decoration",
-        date: "Dec 28, 2026",
-        status: "Pending",
-    },
-    {
-        name: "Ayesha Rahman",
-        service: "Full Wedding Planning",
-        date: "Jan 03, 2027",
-        status: "Accepted",
-    },
-];
-
 const VendorDashboardpage = () => {
     const router = useRouter();
+    const { data: session } = useSession();
+
     const [services, setServices] = useState<Service[]>([]);
+    const [bookings, setBookings] = useState<Booking[]>([]);
     const [loading, setLoading] = useState(true);
+    const [premium, setPremium] = useState(false);
+    const [processingId, setProcessingId] = useState<string | null>(null);
+
+    const vendorEmail = session?.user?.email || "";
+    const userId = session?.user?.id || "";
+
+    const fetchData = useCallback(async () => {
+        if (!vendorEmail) return;
+
+        try {
+            setLoading(true);
+
+            const [servicesData, bookingsData] = await Promise.all([
+                getService(),
+                getVendorBookings(vendorEmail),
+            ]);
+
+            const allServices: Service[] = Array.isArray(servicesData)
+                ? servicesData
+                : [];
+
+            setServices(
+                allServices.filter(
+                    (service) => service.vendorEmail === vendorEmail
+                )
+            );
+
+            setBookings(Array.isArray(bookingsData) ? bookingsData : []);
+
+            if (userId) {
+                try {
+                    const premiumResult = await getPremiumById(userId);
+                    setPremium(Boolean(premiumResult?.premium));
+                } catch {
+                    setPremium(false);
+                }
+            }
+        } catch (error) {
+            console.error("Failed to fetch dashboard data:", error);
+            toast.error("Failed to load dashboard data");
+        } finally {
+            setLoading(false);
+        }
+    }, [vendorEmail, userId]);
 
     useEffect(() => {
-        const fetchServices = async () => {
-            try {
-                const data = await getService();
-                setServices(data);
-            } catch (error) {
-                console.error("Failed to fetch services:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+        void fetchData();
+    }, [fetchData]);
 
-        fetchServices();
-    }, []);
+    // Accept / Reject a booking request (only pending requests can be processed)
+    const handleStatus = async (
+        id: string,
+        status: "Accepted" | "Rejected"
+    ) => {
+        try {
+            setProcessingId(id);
+            await updateBookingStatus(id, vendorEmail, status);
+            setBookings((previous) =>
+                previous.map((booking) =>
+                    booking._id === id ? { ...booking, status } : booking
+                )
+            );
+            toast.success(`Booking ${status.toLowerCase()} successfully!`);
+        } catch (error) {
+            console.error(error);
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : "Failed to update booking"
+            );
+            void fetchData();
+        } finally {
+            setProcessingId(null);
+        }
+    };
+
+    const activeServices = services.filter(
+        (service) =>
+            service.status === "Approved" && (service.isAvailable ?? true)
+    ).length;
+    const pendingRequests = bookings.filter(
+        (booking) => booking.status === "Pending"
+    ).length;
+    const acceptedBookings = bookings.filter(
+        (booking) => booking.status === "Accepted"
+    ).length;
 
     const stats = [
         {
@@ -77,20 +150,23 @@ const VendorDashboardpage = () => {
             icon: BriefcaseBusiness,
         },
         {
-            title: "Pending Services",
-            value: services.filter(
-                (service) => service.status === "Pending"
-            ).length.toString().padStart(2, "0"),
-            icon: CheckCircle2,
+            title: "Active Services",
+            value: activeServices.toString().padStart(2, "0"),
+            icon: Power,
         },
         {
-            title: "Approved Services",
-            value: services.filter(
-                (service) => service.status === "Approved"
-            ).length.toString().padStart(2, "0"),
+            title: "Pending Requests",
+            value: pendingRequests.toString().padStart(2, "0"),
+            icon: Clock,
+        },
+        {
+            title: "Accepted Bookings",
+            value: acceptedBookings.toString().padStart(2, "0"),
             icon: CalendarCheck,
         },
     ];
+
+    const recentBookings = bookings.slice(0, 5);
 
     return (
         <div className="min-h-screen bg-[#fffaf7] p-5 md:p-8">
@@ -147,14 +223,16 @@ const VendorDashboardpage = () => {
                     </p>
 
                     <h2 className="text-2xl font-serif font-bold text-[#800000] mt-1">
-                        Free Plan
+                        {premium ? "Premium Plan" : "Free Plan"}
                     </h2>
-                    <button
-                        onClick={() => router.push("/payment")}
-                        className="text-sm text-[#800000] underline mt-2 font-semibold"
-                    >
-                        Upgrade to Premium
-                    </button>
+                    {!premium && (
+                        <button
+                            onClick={() => router.push("/payment")}
+                            className="text-sm text-[#800000] underline mt-2 font-semibold"
+                        >
+                            Upgrade to Premium
+                        </button>
+                    )}
 
                 </div>
 
@@ -170,65 +248,106 @@ const VendorDashboardpage = () => {
                         <h2 className="text-xl md:text-2xl font-serif font-bold text-[#4b1727]">
                             Recent Booking Requests
                         </h2>
+
+                        <button
+                            onClick={() => router.push("/dashboard/vendor/bookings")}
+                            className="text-[#800000] text-sm font-semibold flex items-center gap-1"
+                        >
+                            View All <ArrowRight size={16} />
+                        </button>
                     </div>
 
-                    <div className="space-y-4">
+                    {loading ? (
+                        <div className="flex items-center justify-center gap-3 py-8 text-[#806a70]">
+                            <Loader2 size={22} className="animate-spin text-[#800000]" />
+                            Loading booking requests...
+                        </div>
+                    ) : recentBookings.length === 0 ? (
+                        <p className="text-center text-gray-500 py-8">
+                            No booking requests yet.
+                        </p>
+                    ) : (
+                        <div className="space-y-4">
 
-                        {bookings.map((booking, index) => (
-                            <div
-                                key={index}
-                                className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#f4e9e5] pb-4 last:border-0"
-                            >
+                            {recentBookings.map((booking) => (
+                                <div
+                                    key={booking._id}
+                                    className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#f4e9e5] pb-4 last:border-0"
+                                >
 
-                                <div className="flex items-center gap-3 min-w-0">
-                                    <div className="w-10 h-10 shrink-0 rounded-full bg-[#fce8e6] flex items-center justify-center text-[#800000] font-bold">
-                                        {booking.name.charAt(0)}
-                                    </div>
-
-                                    <div className="min-w-0">
-                                        <h3 className="text-sm font-semibold text-[#3f2930]">
-                                            {booking.name}
-                                        </h3>
-
-                                        <p className="text-xs text-[#947e82] mt-1">
-                                            {booking.service}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div className="flex flex-wrap items-center gap-3">
-
-                                    <span className="text-xs text-[#6b555b]">
-                                        {booking.date}
-                                    </span>
-
-                                    <span
-                                        className={`text-xs font-semibold px-3 py-1.5 rounded-full ${booking.status === "Pending"
-                                            ? "bg-[#fff0d0] text-[#a65b08]"
-                                            : "bg-[#dcf4df] text-[#18743b]"
-                                            }`}
-                                    >
-                                        {booking.status}
-                                    </span>
-
-                                    {booking.status === "Pending" && (
-                                        <div className="flex gap-2">
-                                            <button className="border border-[#800000] text-[#800000] px-3 py-1.5 rounded-lg text-xs hover:bg-[#fff1f1]">
-                                                Reject
-                                            </button>
-
-                                            <button className="bg-[#800000] text-white px-3 py-1.5 rounded-lg text-xs hover:bg-[#600000]">
-                                                Accept
-                                            </button>
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className="w-10 h-10 shrink-0 rounded-full bg-[#fce8e6] flex items-center justify-center text-[#800000] font-bold">
+                                            {(booking.customerName || "C").charAt(0)}
                                         </div>
-                                    )}
+
+                                        <div className="min-w-0">
+                                            <h3 className="text-sm font-semibold text-[#3f2930]">
+                                                {booking.customerName || "Customer"}
+                                            </h3>
+
+                                            <p className="text-xs text-[#947e82] mt-1">
+                                                {booking.serviceName}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-wrap items-center gap-3">
+
+                                        <span className="text-xs text-[#6b555b]">
+                                            {booking.eventDate
+                                                ? new Date(booking.eventDate).toLocaleDateString(
+                                                      "en-BD",
+                                                      {
+                                                          day: "numeric",
+                                                          month: "short",
+                                                          year: "numeric",
+                                                      }
+                                                  )
+                                                : "Date not set"}
+                                        </span>
+
+                                        <span
+                                            className={`text-xs font-semibold px-3 py-1.5 rounded-full ${booking.status === "Pending"
+                                                ? "bg-[#fff0d0] text-[#a65b08]"
+                                                : booking.status === "Rejected"
+                                                  ? "bg-[#fde2e2] text-[#b42318]"
+                                                  : "bg-[#dcf4df] text-[#18743b]"
+                                                }`}
+                                        >
+                                            {booking.status || "Pending"}
+                                        </span>
+
+                                        {booking.status === "Pending" && (
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() =>
+                                                        handleStatus(booking._id, "Rejected")
+                                                    }
+                                                    disabled={processingId === booking._id}
+                                                    className="border border-[#800000] text-[#800000] px-3 py-1.5 rounded-lg text-xs hover:bg-[#fff1f1] disabled:opacity-50"
+                                                >
+                                                    Reject
+                                                </button>
+
+                                                <button
+                                                    onClick={() =>
+                                                        handleStatus(booking._id, "Accepted")
+                                                    }
+                                                    disabled={processingId === booking._id}
+                                                    className="bg-[#800000] text-white px-3 py-1.5 rounded-lg text-xs hover:bg-[#600000] disabled:opacity-50"
+                                                >
+                                                    Accept
+                                                </button>
+                                            </div>
+                                        )}
+
+                                    </div>
 
                                 </div>
+                            ))}
 
-                            </div>
-                        ))}
-
-                    </div>
+                        </div>
+                    )}
                 </div>
 
 
@@ -239,7 +358,10 @@ const VendorDashboardpage = () => {
                             My Services
                         </h2>
 
-                        <button className="text-[#800000] text-sm font-semibold flex items-center gap-1">
+                        <button
+                            onClick={() => router.push("/dashboard/vendor/my-services")}
+                            className="text-[#800000] text-sm font-semibold flex items-center gap-1"
+                        >
                             Manage <ArrowRight size={16} />
                         </button>
                     </div>
@@ -298,34 +420,36 @@ const VendorDashboardpage = () => {
 
 
             {/* Premium Upgrade Banner */}
-            <div className="bg-linear-to-r from-[#f8dada] to-[#fce8e6] rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-5 border border-[#f3d2d2]">
+            {!premium && (
+                <div className="bg-linear-to-r from-[#f8dada] to-[#fce8e6] rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-5 border border-[#f3d2d2]">
 
-                <div className="flex items-center gap-5">
+                    <div className="flex items-center gap-5">
 
-                    <div className="hidden sm:flex w-16 h-16 rounded-full bg-[#f4c9b5] items-center justify-center">
-                        <Crown size={34} className="text-[#a45a13]" />
+                        <div className="hidden sm:flex w-16 h-16 rounded-full bg-[#f4c9b5] items-center justify-center">
+                            <Crown size={34} className="text-[#a45a13]" />
+                        </div>
+
+                        <div>
+                            <h2 className="text-2xl md:text-3xl font-serif font-bold text-[#4b1727]">
+                                Ready to grow your business?
+                            </h2>
+
+                            <p className="text-sm md:text-base text-[#684650] mt-2">
+                                Upgrade to Premium for unlimited active services and a premium vendor badge.
+                            </p>
+                        </div>
+
                     </div>
 
-                    <div>
-                        <h2 className="text-2xl md:text-3xl font-serif font-bold text-[#4b1727]">
-                            Ready to grow your business?
-                        </h2>
-
-                        <p className="text-sm md:text-base text-[#684650] mt-2">
-                            Upgrade to Premium for unlimited active services and a premium vendor badge.
-                        </p>
-                    </div>
+                    <button
+                        onClick={() => router.push("/payment")}
+                        className="bg-[#843047] hover:bg-[#542332] text-white px-6 py-3 rounded-xl font-semibold transition"
+                    >
+                        Upgrade to Premium
+                    </button>
 
                 </div>
-
-                <button
-                    onClick={() => router.push("/payment")}
-                    className="bg-[#843047] hover:bg-[#542332] text-white px-6 py-3 rounded-xl font-semibold transition"
-                >
-                    Upgrade to Premium
-                </button>
-
-            </div>
+            )}
 
         </div>
     );

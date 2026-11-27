@@ -25,9 +25,11 @@ import {
 } from "@/components/ui/drawer";
 
 import { useSession, signOut } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 
 export function Navbar() {
+  const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isProfileOpen, setIsProfileOpen] = React.useState(false);
 
@@ -42,7 +44,10 @@ export function Navbar() {
   const navigation = [
     { href: "/", label: "Home" },
     { href: "/browse-services", label: "Browse Services" },
-    { href: `/dashboard/${role}`, label: "Dashboard" },
+    // Dashboard is only shown for authenticated users (no dead links)
+    ...(user
+      ? [{ href: `/dashboard/${role}`, label: "Dashboard" }]
+      : []),
   ];
 
   // Close dropdown when clicking outside
@@ -64,9 +69,19 @@ export function Navbar() {
   }, []);
 
   const handleSignOut = async () => {
-    await signOut();
+    try {
+      await signOut();
+    } catch (error) {
+      console.error("Sign out failed:", error);
+    }
+
     setIsProfileOpen(false);
     setIsMobileMenuOpen(false);
+
+    // Return to the public home page and refresh so the navbar
+    // immediately reflects the signed-out state.
+    router.push("/");
+    router.refresh();
   };
 
   return (

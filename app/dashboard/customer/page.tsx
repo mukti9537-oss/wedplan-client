@@ -53,10 +53,14 @@ const CustomerDashboardpage = () => {
             setLoading(true);
             setError("");
 
+            const { getAuthHeaders } = await import("@/lib/core/auth-headers");
+            const headers = await getAuthHeaders();
+
             const res = await fetch(
                 `${BASE_URL}/my-bookings/${encodeURIComponent(customerEmail)}`,
                 {
                     cache: "no-store",
+                    headers,
                 }
             );
 
