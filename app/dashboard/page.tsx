@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
  * callback URL). It redirects the authenticated user to the dashboard that
  * matches their role, and unauthenticated users to Sign In.
  */
+export const dynamic = "force-dynamic";
 export default async function DashboardIndexPage() {
     const session = await getSession();
 
