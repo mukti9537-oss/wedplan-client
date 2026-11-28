@@ -121,7 +121,11 @@ const MyServicesPage = () => {
                 )
             );
 
-            toast.error("Failed to update availability");
+            const message =
+                error instanceof Error && error.message
+                    ? error.message
+                    : "Failed to update availability";
+            toast.error(message);
         } finally {
             setToggling((prev) => {
                 const next = new Set(prev);

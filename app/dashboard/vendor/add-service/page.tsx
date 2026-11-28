@@ -64,16 +64,17 @@ const AddServicepage = () => {
         setImage(null);
         setPreview(null);
     };
-
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    const form = e.currentTarget; // Form reference ধরে রাখো
 
     if (!session?.user) {
         toast.error("Please login first!");
         return;
     }
 
-    const formData = new FormData(e.currentTarget);
+    const formData = new FormData(form);
 
     formData.append("category", category);
     formData.append("vendorName", vendorName);
@@ -94,7 +95,7 @@ const AddServicepage = () => {
 
         if (result?.success === true) {
             toast.success("Service added successfully!");
-            e.currentTarget.reset();
+            form.reset(); // e.currentTarget.reset() এর পরিবর্তে
             setImage(null);
             setPreview(null);
             setCategory("");

@@ -42,8 +42,11 @@ export const createService = async (data: FormData) => {
         const text = await res.text();
         result = { message: text || `Server error (${res.status})` };
     }
-    if (!res.ok) {
-        throw new Error(result.message || "Failed to add service");
+    // Return the parsed body (success or error) so callers can read
+    // `success`, `message` and `upgradeRequired` (free plan limit) instead of
+    // only seeing a thrown exception. Network failures still throw below.
+    if (!res.ok && !result) {
+        throw new Error(`Failed to add service (HTTP ${res.status})`);
     }
     return result;
 };
